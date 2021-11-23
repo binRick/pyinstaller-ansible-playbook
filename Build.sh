@@ -16,6 +16,10 @@ tasks:
 EOF
 )"
 
+docker_build() {
+	docker build -f Dockerfile
+}
+
 setup() {
 	export ANSIBLE_PYTHON_INTERPRETER=$(command -v python3)
 	if [[ ! -d .v ]]; then
@@ -40,7 +44,7 @@ compile() {
 	#		echo -e "$msg"
 	#	done < <(pyinstaller ansible.spec)
 	ansi >&2 --magenta --bold "$(find dist -type f)"
-	(cd dist && ln -sf ansible-playbook ansible)
+	(cd dist && rsync ansible-playbook ansible)
 }
 
 do_exec() {
@@ -69,9 +73,9 @@ test() {
 	while read -r l; do
 		msg="$(ansi --magenta --bold "ANSIBLE PLAYBOOK> $l")"
 		echo -e "$msg"
-done < <(
-	./dist/ansible-playbook --version
-)
+	done < <(
+		./dist/ansible-playbook --version
+	)
 	./dist/ansible all -i localhost, -c local -m ping
 }
 
@@ -87,6 +91,7 @@ prod_main() {
 	compile
 	debug
 	test
+	docker_build
 }
 
 dev_main() {
