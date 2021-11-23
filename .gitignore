@@ -128,3 +128,7 @@ dmypy.json
 .pyre/
 *.swp
 .v/*
+./build
+./dist
+./__pycache__
+./.git

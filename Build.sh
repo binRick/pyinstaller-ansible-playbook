@@ -1,7 +1,17 @@
 #!/usr/bin/env bash
 set -e
-source ansi
+cd $(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+export PATH=$(pwd)/bin:$PATH
+
+if [[ "$ANSI_DISABLED" == 1 ]]; then
+	ansi() {
+		echo -e "$@"
+	}
+else
+	source ansi
+fi
 eval "$(cat utils.sh)"
+VENV_DIR=~/.ansible-build-venv
 TEST_PB="$(
 	cat <<EOF
 ---
@@ -17,22 +27,22 @@ EOF
 )"
 
 docker_build() {
-  if ! command -v docker >/dev/null 2>&1; then
-    return
-  fi
+	if ! command -v docker >/dev/null 2>&1; then
+		return
+	fi
 	docker build -f Dockerfile
 }
 
 setup() {
 	export ANSIBLE_PYTHON_INTERPRETER=$(command -v python3)
-	if [[ ! -d .v ]]; then
-		python3 -m venv .v
-		source .v/bin/activate
+	if [[ ! -d $VENV_DIR ]]; then
+		python3 -m venv $VENV_DIR
+		source $VENV_DIR/activate
 		pip install pip -U -q
 		pip install pyinstaller six ansible -q
 	fi
 
-	source .v/bin/activate
+	source $VENV_DIR/bin/activate
 }
 
 clean() {
@@ -94,12 +104,22 @@ prod_main() {
 	compile
 	debug
 	test
-	docker_build
+  get_facts
+	#docker_build
 }
 
 dev_main() {
 	clean
 	prod_main
+}
+
+get_facts(){
+  td=$(mktemp -d)
+  cmd="./dist/ansible all -i localhost, -c local -m setup --tree $td"
+  ansi --yellow --italic "$cmd"
+  eval "$cmd"
+  msg="$(cat $td/localhost)"
+  ansi --cyan --bold "$msg"
 }
 
 main() {

@@ -1,0 +1,33 @@
+FROM alpine:latest as alpine
+WORKDIR /compile
+RUN     apk update
+RUN     apk add --no-cache \
+        git \
+        tcpdump \
+        ngrep \
+        bash \
+        zsh \
+        rsync \
+        sqlite \
+        dnsmasq \
+        nftables \
+        iperf \
+        curl \
+        wget \
+        tmux \
+        file \
+        gcompat \
+        librrd \
+        strace \
+        openssh \
+        npm \
+        gcc \
+        make python3 python3-dev musl-dev musl libffi-dev libffi
+
+COPY ./bin ansi ansible-playbook.py ansible.spec Build.sh utils.sh /compile/
+RUN python3 -m venv /root/.ansible-build-venv
+RUN /bin/bash -c 'source /root/.ansible-build-venv/bin/activate && pip install -q -U pip'
+RUN /bin/bash -c 'source /root/.ansible-build-venv/bin/activate && pip install ansible pyinstaller six'
+COPY passh /bin/passh
+RUN apk --no-cache add coreutils
+RUN passh ./Build.sh
