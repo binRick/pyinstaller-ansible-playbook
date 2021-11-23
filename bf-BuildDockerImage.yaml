@@ -1,0 +1,64 @@
+x-reference-data:
+  env: &env
+      DOCKER_XYZ: abc123
+
+  vars: &vars
+      DOCKER_TARGET: unknown
+      DOCKER_FILE: unknown
+
+  distros: &distros
+      -
+        - fedora
+        - fedora34
+      -
+        - alpine
+      -
+        - ubuntu
+      -
+        - centos
+        - centos7
+
+  distro-vars: &distro-vars
+      ubuntu: { DOCKER_TARGET: ubuntu, DOCKER_FILE: Dockerfile.ubuntu}
+      alpine: { DOCKER_TARGET: alpine, DOCKER_FILE: Dockerfile.alpine}
+      fedora: { DOCKER_TARGET: fedora, DOCKER_FILE: Dockerfile.fedora}
+      fedora34: { DOCKER_TARGET: fedora34, DOCKER_FILE: Dockerfile.fedora34 }
+      centos7: { DOCKER_TARGET: centos7, DOCKER_FILE: Dockerfile.centos7 }
+      centos: { DOCKER_TARGET: centos, DOCKER_FILE: Dockerfile.centos }
+      '*':
+        DOCKER_PATH: .
+        DOCKER_MODE: build
+
+config:
+  replica-replace-pattern: '%'
+  max-parallel-commands: 10
+  show-failure-report: yes
+  ignore-failure: no
+  vars: *vars
+  show-task-times: yes
+  log-path: /tmp/ansible-docker-images.log
+tasks:
+  - name: Build Docker Images
+    tags: [build]
+    parallel-tasks:
+    - name: Build Docker Image %
+      for-each-list: *distros
+      apply-each-vars: *distro-vars
+      env: *env
+      pre-cmd: echo PRECMD-OK
+      cmd: eval "command docker {{DOCKER_MODE}} -t {{DOCKER_TARGET}} -f {{DOCKER_FILE}} {{DOCKER_PATH}}"
+      stdout-log: /tmp/ansible-docker-image-%.log
+      post-cmd: echo POST-OK
+
+  - name: Test Docker Images
+    tags: [test]
+    parallel-tasks:
+    - name: Test Docker Image %
+      stdout-log: /tmp/s1.log
+      for-each-list: *distros
+      apply-each-vars: *distro-vars
+      env: *env
+      pre-cmd: echo "command docker {{DOCKER_MODE}} -t {{DOCKER_TARGET}} -f {{DOCKER_FILE}} {{DOCKER_PATH}}"
+      cmd: echo CMD-OK
+      rescue-cmd: echo "rescuing {{DOCKER_TARGET}}"
+      post-cmd: echo POST-OK

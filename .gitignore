@@ -132,3 +132,4 @@ dmypy.json
 ./dist
 ./__pycache__
 ./.git
+bash_utils

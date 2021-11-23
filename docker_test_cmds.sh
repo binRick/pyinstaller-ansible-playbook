@@ -1,1 +1,1 @@
-./get_built_images.sh|while read -r distro version; do dv="$distro:$version" && echo -e "docker run --rm $dv bash --norc --noprofile -c 'ls /compile/dist/ansible >/dev/null 2>/dev/null && { echo OK $dv; } || { echo FAIL $dv; }'"; done
+./get_built_images.sh | while read -r distro version; do dv="$distro:$version" && echo -e "docker run --rm $dv bash --norc --noprofile -c 'ls /compile/dist/ansible >/dev/null 2>/dev/null && { echo OK $dv; } || { echo FAIL $dv; }'"; done

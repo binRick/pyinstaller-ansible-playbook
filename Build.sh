@@ -104,7 +104,7 @@ prod_main() {
 	compile
 	debug
 	test
-  get_facts
+	get_facts
 	#docker_build
 }
 
@@ -113,13 +113,13 @@ dev_main() {
 	prod_main
 }
 
-get_facts(){
-  td=$(mktemp -d)
-  cmd="./dist/ansible all -i localhost, -c local -m setup --tree $td"
-  ansi --yellow --italic "$cmd"
-  eval "$cmd"
-  msg="$(cat $td/localhost|jq -Mrc| cut -c -1024)"
-  ansi --cyan --bold "$msg"
+get_facts() {
+	td=$(mktemp -d)
+	cmd="./dist/ansible all -i localhost, -c local -m setup --tree $td"
+	ansi --yellow --italic "$cmd"
+	eval "$cmd"
+	msg="$(cat $td/localhost | cut -c -1024)"
+	ansi --cyan --bold "$msg"
 }
 
 main() {

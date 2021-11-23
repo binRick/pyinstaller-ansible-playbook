@@ -2,11 +2,11 @@ FROM fedora:34 as fedora34
 COPY passh /usr/bin
 WORKDIR /compile
 RUN dnf -y install binutils python3 python3-setuptools rsync findutils
-COPY ansi ansible-playbook.py ansible.spec utils.sh /compile/
+COPY bin ansi ansible-playbook.py ansible.spec utils.sh /compile/
 
 RUN python3 -m venv /root/.ansible-build-venv
 RUN bash -c 'source /root/.ansible-build-venv/bin/activate && pip install -q -U pip'
 RUN bash -c 'source /root/.ansible-build-venv/bin/activate && pip install ansible pyinstaller six'
 
-RUN COPY Build.sh /compile
+COPY Build.sh /compile 
 RUN env ANSI_DISABLED=1 passh ./Build.sh

@@ -1,18 +1,18 @@
-get_distro_colors(){
- cat << EOF
+get_distro_colors() {
+	cat <<EOF
 fedora magenta  
 ubuntu red  
 alpine cyan
 centos green
 EOF
 }
-distro_color(){
-  d="$1"
-  c="yellow"
-  while read -r _d _c; do
-    [[ "$d" == "$_d" ]] && { echo "$_c" && return; }
-  done < <(get_distro_colors)
-  echo -e "$c"
+distro_color() {
+	d="$1"
+	c="yellow"
+	while read -r _d _c; do
+		[[ "$d" == "$_d" ]] && { echo "$_c" && return; }
+	done < <(get_distro_colors)
+	echo -e "$c"
 }
 fd_setup() {
 	exec 3>&1 4>&2 5>&2
