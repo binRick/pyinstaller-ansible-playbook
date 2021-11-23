@@ -118,7 +118,7 @@ get_facts(){
   cmd="./dist/ansible all -i localhost, -c local -m setup --tree $td"
   ansi --yellow --italic "$cmd"
   eval "$cmd"
-  msg="$(cat $td/localhost)"
+  msg="$(cat $td/localhost|jq -Mrc| cut -c -1024)"
   ansi --cyan --bold "$msg"
 }
 
