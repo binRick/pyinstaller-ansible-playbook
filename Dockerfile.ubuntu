@@ -1,0 +1,24 @@
+FROM ubuntu:latest
+RUN apt-get update
+RUN apt-get install -y python3.8-venv binutils python3-dev rsync
+
+WORKDIR /compile
+RUN python3 -m venv .v
+RUN bash -c 'source .v/bin/activate && pip install -q -U pip'
+RUN bash -c 'source .v/bin/activate && pip install ansible pyinstaller six -q'
+COPY ansi ansible-playbook.py ansible.spec Build.sh utils.sh /compile/
+COPY passh /usr/bin
+RUN env TERM=xterm-256color passh ./Build.sh
+
+
+
+
+#WORKDIR /test
+#COPY ./dist/ansible /test/ansible
+#COPY ./dist/ansible-playbook /test/ansible-playbook
+
+#RUN /test/ansible-playbook --help
+#RUN /test/ansible --help
+#RUN /test/ansible-playbook --version
+#RUN /test/ansible --version
+

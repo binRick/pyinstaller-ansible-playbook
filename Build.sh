@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -e
+source ansi
 eval "$(cat utils.sh)"
-
 TEST_PB="$(
 	cat <<EOF
 ---
@@ -17,6 +17,9 @@ EOF
 )"
 
 docker_build() {
+  if ! command -v docker >/dev/null 2>&1; then
+    return
+  fi
 	docker build -f Dockerfile
 }
 
