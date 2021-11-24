@@ -14,9 +14,9 @@ x-reference-data:
       -
         - alpine315
       -
-        - debian
+        - debian11
       -
-        - ubuntu
+        - ubuntu20.04
       -
         - centos8
         - centos7
