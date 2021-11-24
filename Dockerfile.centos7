@@ -10,6 +10,8 @@ COPY bin ansi ansible-playbook.py ansible.spec Build.sh utils.sh /compile/
 
 RUN python3 -m venv /root/.ansible-build-venv
 RUN yum -y install bash zsh
+
+
 #RUN /bin/bash -c 'export PYTHONIOENCODING=utf8 && source /root/.ansible-build-venv/bin/activate && pip3 install -q -U pip'
 
 #RUN /bin/bash -c 'source /root/.ansible-build-venv/bin/activate && pip3 install ansible pyinstaller six watchdog -U -q'

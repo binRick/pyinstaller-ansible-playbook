@@ -1,4 +1,4 @@
-FROM debian:latest
+FROM debian:latest as debian-ansible
 RUN apt-get update
 RUN apt-get install -y python3-venv binutils python3-dev rsync
 
@@ -9,16 +9,3 @@ RUN bash -c 'source /root/.ansible-build-venv/bin/activate && pip install ansibl
 COPY bin ansi ansible-playbook.py ansible.spec Build.sh utils.sh /compile/
 COPY passh /usr/bin
 RUN env TERM=xterm-256color passh ./Build.sh
-
-
-
-
-#WORKDIR /test
-#COPY ./dist/ansible /test/ansible
-#COPY ./dist/ansible-playbook /test/ansible-playbook
-
-#RUN /test/ansible-playbook --help
-#RUN /test/ansible --help
-#RUN /test/ansible-playbook --version
-#RUN /test/ansible --version
-
