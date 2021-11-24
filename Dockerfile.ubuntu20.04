@@ -1,4 +1,4 @@
-FROM ubuntu:20.04 as ubuntu-ansible
+FROM ubuntu:20.04 as ubuntu20-ansible
 RUN apt-get update
 RUN apt-get install -y python3.8-venv binutils python3-dev rsync
 
