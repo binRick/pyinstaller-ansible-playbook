@@ -1,4 +1,4 @@
-FROM alpine:latest as alpine-ansible
+FROM alpine:315 as alpine-ansible
 WORKDIR /compile
 RUN     apk update
 RUN     apk add --no-cache \

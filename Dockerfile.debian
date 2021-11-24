@@ -1,4 +1,4 @@
-FROM debian:latest as debian-ansible
+FROM debian:11 as debian-ansible
 RUN apt-get update
 RUN apt-get install -y python3-venv binutils python3-dev rsync
 
