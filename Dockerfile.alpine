@@ -1,4 +1,4 @@
-FROM alpine:latest as alpine
+FROM alpine:latest as alpine-ansible
 WORKDIR /compile
 RUN     apk update
 RUN     apk add --no-cache \
@@ -27,7 +27,7 @@ RUN     apk add --no-cache \
 COPY ./bin ansi ansible-playbook.py ansible.spec Build.sh utils.sh /compile/
 RUN python3 -m venv /root/.ansible-build-venv
 RUN /bin/bash -c 'source /root/.ansible-build-venv/bin/activate && pip install -q -U pip'
-RUN /bin/bash -c 'source /root/.ansible-build-venv/bin/activate && pip install ansible pyinstaller six'
+RUN /bin/bash -c 'source /root/.ansible-build-venv/bin/activate && pip install ansible pyinstaller six watchdog'
 COPY passh /bin/passh
 RUN apk --no-cache add coreutils
 RUN passh ./Build.sh

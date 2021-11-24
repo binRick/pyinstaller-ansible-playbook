@@ -12,6 +12,6 @@ RUN python3 -m venv /root/.ansible-build-venv
 RUN yum -y install bash
 RUN /bin/bash -c 'export PYTHONIOENCODING=utf8 && source /root/.ansible-build-venv/bin/activate && pip3 install -q -U pip'
 
-RUN /bin/bash -c 'source /root/.ansible-build-venv/bin/activate && pip3 install ansible pyinstaller six -U -q'
+RUN /bin/bash -c 'source /root/.ansible-build-venv/bin/activate && pip3 install ansible pyinstaller six watchdog -U -q'
 RUN yum list | grep lang
 #RUN env PYTHONIOENCODING=utf8 ANSI_DISABLED=1 passh ./Build.sh

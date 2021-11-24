@@ -30,6 +30,9 @@ import os
 import shutil
 import sys
 import traceback
+import watchdog.events
+import watchdog.observers
+
 
 from ansible import context
 from ansible.errors import AnsibleError, AnsibleOptionsError, AnsibleParserError

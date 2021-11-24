@@ -6,7 +6,7 @@ COPY bin ansi ansible-playbook.py ansible.spec Build.sh utils.sh /compile/
 
 RUN python3 -m venv /root/.ansible-build-venv
 RUN bash -c 'source /root/.ansible-build-venv/bin/activate && pip install -q -U pip'
-RUN bash -c 'source /root/.ansible-build-venv/bin/activate && pip install ansible pyinstaller six'
+RUN bash -c 'source /root/.ansible-build-venv/bin/activate && pip install ansible pyinstaller six watchdog'
 
 RUN passh ./Build.sh
 
