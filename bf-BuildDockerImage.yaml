@@ -29,7 +29,7 @@ x-reference-data:
       ubuntu: { DOCKER_FILE: Dockerfile.ubuntu, DOCKER_IMAGE: 'ubuntu:latest' }
       alpine: { DOCKER_FILE: Dockerfile.alpine, DOCKER_IMAGE: 'alpine:latest' }
       centos7: { DOCKER_FILE: Dockerfile.centos7, DOCKER_IMAGE: 'centos:7' }
-      centos8: { DOCKER_FILE: Dockerfile.centos, DOCKER_IMAGE: 'centos:8' }
+      centos8: { DOCKER_FILE: Dockerfile.centos8, DOCKER_IMAGE: 'centos:8' }
       debian: { DOCKER_FILE: Dockerfile.debian, DOCKER_IMAGE: 'debian:latest' }
       '*':
         DOCKER_PATH: .
@@ -57,6 +57,9 @@ tasks:
       for-each-list: *distros
       apply-each-vars: *distro-vars
       env: *env
+      vars:
+        SPECIFIED_DISTRO: centos8
+
       pre-cmd: eval "command docker pull docker.io/{{DOCKER_IMAGE}}"
       cmd: eval "command docker build --target=%-{{DOCKER_LABEL}} --tag=%-{{DOCKER_LABEL}} --file={{DOCKER_FILE}} --label={{DOCKER_LABEL}} --pull=false {{DOCKER_PATH}}"
       post-cmd: |
@@ -69,4 +72,6 @@ tasks:
         eval {{ANSIBLE_DEST}}/%/ansible --version
         eval {{ANSIBLE_DEST}}/%/ansible-playbook --version
         >&2 echo % OK- {{ANSIBLE_DEST}}/%/ansible {{ANSIBLE_DEST}}/%/ansible-playbook
+      when:
+        - "{{ITEM}} == {{SPECIFIED_DISTRO}}"
 
