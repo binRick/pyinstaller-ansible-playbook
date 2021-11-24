@@ -134,3 +134,4 @@ dmypy.json
 ./.git
 bash_utils
 .bashful
+binaries

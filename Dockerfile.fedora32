@@ -1,0 +1,11 @@
+FROM fedora:32 as fedora32-ansible
+COPY passh /usr/bin
+WORKDIR /compile
+RUN dnf -y install binutils python3 python3-setuptools rsync findutils
+COPY bin ansi ansible-playbook.py ansible.spec Build.sh utils.sh /compile/
+
+RUN python3 -m venv /root/.ansible-build-venv
+RUN bash -c 'source /root/.ansible-build-venv/bin/activate && pip install -q -U pip'
+RUN bash -c 'source /root/.ansible-build-venv/bin/activate && pip install ansible pyinstaller six watchdog'
+
+RUN passh ./Build.sh
