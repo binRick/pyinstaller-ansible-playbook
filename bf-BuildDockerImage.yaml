@@ -8,7 +8,7 @@ x-reference-data:
 
   distros: &distros
     - 
-      - fedora35
+      $include: distros.yaml
 
   distro-vars: &distro-vars
       fedora33: { DOCKER_FILE: Dockerfile.fedora33, DOCKER_IMAGE: 'fedora:33' }
