@@ -1,37 +1,22 @@
 FROM centos:7 as centos7-ansible
 ENV ANSIBLE_VERSION=4.9.0
+
 RUN  echo ANSIBLE_VERSION=$ANSIBLE_VERSION
-COPY src/ansible-4.9.0.tar.gz /
-RUN bash -c "tar zxf ansible-$ANSIBLE_VERSION.tar.gz"
-ENV PYTHONIOENCODING=utf8
-ENV ANSI_DISABLED=1
-
-
-COPY passh /usr/bin
-WORKDIR /compile
-RUN yum -y install dnf
-RUN dnf -y install binutils python3 rsync findutils glibc-common 
-COPY bin ansi ansible-playbook.py ansible.spec Build.sh utils.sh /compile/
-
-RUN dnf -y install bash zsh python3-wheel python3-libs python3-pip python3-setuptools python3-devel
-
-RUN /bin/bash -c 'python3 -m venv /root/.ansible-build-venv'
-
-RUN bash -c 'source /root/.ansible-build-venv/bin/activate && python3 -m pip install -q -U pip'
-RUN bash -c 'source /root/.ansible-build-venv/bin/activate && python3 -m pip install pyinstaller six watchdog'
-
 
 WORKDIR /
-ENV LANG en_US.UTF-8
-ENV LC_ALL en_US.UTF-8
+COPY src/ansible-4.9.0.tar.gz /
+RUN tar zxf ansible-$ANSIBLE_VERSION.tar.gz
+ENV ANSI_DISABLED=1
 
-RUN dnf -y install git 
+COPY passh /usr/bin
+RUN bash -c "yum -y install dnf && dnf -y install binutils python3 rsync findutils glibc-common git bash zsh python3-wheel python3-libs python3-pip python3-setuptools python3-devel"
 
+WORKDIR /compile
+COPY bin ansi ansible-playbook.py ansible.spec Build.sh utils.sh /compile/
+
+
+RUN bash -c 'python3 -m venv /root/.ansible-build-venv'
+RUN bash -c 'source /root/.ansible-build-venv/bin/activate && python3 -m pip install -q -U pip'
+RUN bash -c 'source /root/.ansible-build-venv/bin/activate && python3 -m pip install pyinstaller six watchdog'
 RUN bash -c 'source /root/.ansible-build-venv/bin/activate && cd /ansible-$ANSIBLE_VERSION && python3 -m pip install .'
 RUN bash -c 'source /root/.ansible-build-venv/bin/activate && passh /compile/Build.sh'
-
-
-#RUN /bin/bash -c 'export PYTHONIOENCODING=utf8 && source /root/.ansible-build-venv/bin/activate && pip3 install -q -U pip'
-#RUN /bin/bash -c 'source /root/.ansible-build-venv/bin/activate && pip3 install pyinstaller six watchdog -U -q'
-#RUN /bin/bash -c 'source /root/.ansible-build-venv/bin/activate && python3 -m pip install /ansible-$ANSIBLE_VERSION"
-#RUN env PYTHONIOENCODING=utf8 ANSI_DISABLED=1 passh /compile/Build.sh
