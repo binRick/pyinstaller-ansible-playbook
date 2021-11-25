@@ -27,7 +27,7 @@ while read -r d; do
 		fi
 	done
 	if [[ "$add" == 1 ]]; then
-		echo -e "-\n  - $d" >>$new_distros
+		echo -e "- $d" >>$new_distros
 		added_qty=$(($added_qty + 1))
 	fi
 done < <(echo -e "$DISTROS"|tr ' ' '\n'|sort -u|egrep -v '^$')

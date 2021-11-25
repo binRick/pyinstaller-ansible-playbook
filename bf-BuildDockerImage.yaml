@@ -6,7 +6,8 @@ x-reference-data:
     DOCKER_FILE: unknown
 
   distros: &distros
-    $include: distros.yaml
+    - 
+      $include: distros.yaml
 
   all_distros: &all_distros
     $include: all_distros.yaml
