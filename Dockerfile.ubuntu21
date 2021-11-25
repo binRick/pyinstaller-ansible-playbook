@@ -3,7 +3,7 @@ ENV ANSIBLE_VERSION=4.9.0
 RUN  echo ANSIBLE_VERSION=$ANSIBLE_VERSION
 COPY src/ansible-4.9.0.tar.gz /
 RUN apt-get update
-RUN apt-get install -y python3.8-venv binutils python3-dev rsync
+RUN apt-get install -y python3-venv binutils python3-dev rsync
 
 WORKDIR /compile
 RUN python3 -m venv /root/.ansible-build-venv
