@@ -24,7 +24,7 @@ for d in $DISTROS; do
 		fi
 	done
 	if [[ "$add" == 1 ]]; then
-		echo -e " - $d" >>$new_distros
+		echo -e "  -\n    - $d" >>$new_distros
 		added_qty=$(($added_qty + 1))
 	fi
 done
