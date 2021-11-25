@@ -11,10 +11,10 @@ if ! command -v yaml2json >/dev/null; then
 fi
 
 DISTROS_JSON="$(command cat all_distros.yaml | yaml2json 2>/dev/null | jq '.distros')"
-DISTROS="$(json2sh <<<"$DISTROS_JSON" | cut -d= -f2 | sort -u)"
+DISTROS="$(json2sh <<<"$DISTROS_JSON" | cut -d= -f2 | sort -u|tr '\n' ' ')"
 
 new_distros=./distros.yaml
-echo -e "distros: &distros" >$new_distros
+echo -e 'distros: &distros' >$new_distros
 added_qty=0
 while read -r d; do
 	add=0
@@ -27,7 +27,7 @@ while read -r d; do
 		echo -e "  -\n    - $d" >>$new_distros
 		added_qty=$(($added_qty + 1))
 	fi
-done < <(echo -e "$DISTROS"|tr ' ' '\n'|sort -u|egrep -v '^$')"
+done < <(echo -e "$DISTROS"|tr ' ' '\n'|sort -u|egrep -v '^$')
 
 if [[ "$added_qty" == 0 ]]; then
 	ansi --red --bg-black "No Distro Selected."
@@ -35,7 +35,7 @@ if [[ "$added_qty" == 0 ]]; then
 	exit 1
 fi
 
-ansi >&2 --yellow --bg-black --italic "$(cat $new_distros) :: $added_qty"
+ansi >&2 --magenta --bg-black --italic "$(cat $new_distros)"
 cmd="~/bashful/bashful run bf-BuildDockerImage.yaml $BASHFUL_ARGS"
 
 ansi >&2 --yellow --italic "$cmd"

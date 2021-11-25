@@ -1,3 +1,5 @@
 distros: &distros
   -
-    - fedora35
+    - debian10
+  -
+    - fedora33
