@@ -1,5 +1,0 @@
-distros: &distros
-  -
-    - debian10
-  -
-    - fedora33
