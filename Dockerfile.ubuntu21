@@ -1,0 +1,11 @@
+FROM ubuntu:21.10 as ubuntu21-ansible
+RUN apt-get update
+RUN apt-get install -y python3.8-venv binutils python3-dev rsync
+
+WORKDIR /compile
+RUN python3 -m venv /root/.ansible-build-venv
+RUN bash -c 'source /root/.ansible-build-venv/bin/activate && pip install -q -U pip'
+RUN bash -c 'source /root/.ansible-build-venv/bin/activate && pip install ansible pyinstaller six watchdog -q'
+COPY ./bin ansi ansible-playbook.py ansible.spec Build.sh utils.sh /compile/
+COPY passh /usr/bin
+RUN env TERM=xterm-256color passh ./Build.sh
