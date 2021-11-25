@@ -11,9 +11,9 @@ x-reference-data:
 
   distros: &distros
       -
-        - fedora33
-        - fedora34
         - fedora35
+        - fedora34
+        - fedora33
       -
         - alpine315
       -
@@ -25,6 +25,7 @@ x-reference-data:
       -
         - centos7
         - centos8
+  _distros: 
 
   distro-vars: &distro-vars
       fedora33: { DOCKER_FILE: Dockerfile.fedora33, DOCKER_IMAGE: 'fedora:33' }
@@ -79,18 +80,20 @@ tasks:
       env: *env
       vars: *vars
 
-      pre-cmd: eval "command docker pull {{DOCKER_HUB}}/{{DOCKER_IMAGE}}"
-      cmd: eval "command docker build --build-arg=ANSIBLE_VERSION={{ANSIBLE_VERSION}} --target=%-{{DOCKER_LABEL}} --tag=%-{{DOCKER_LABEL}} --file={{DOCKER_FILE}} --label={{DOCKER_LABEL}} --pull=false {{DOCKER_PATH}}"
-      post-cmd: |
+      pre-cmd: |
+        eval "[[ -f \"{{ANSIBLE_DEST}}/%/ansible-playbook\" ]] && [[ -f \"{{ANSIBLE_DEST}}/%/ansible\" ]] && exit 0"
         [[ -d "{{ANSIBLE_DEST}}/%" ]] || mkdir -p "{{ANSIBLE_DEST}}/%"
-        cid=$(command docker create %-{{DOCKER_LABEL}})
-        cmd="command docker cp $cid:{{ANSIBLE_PATH}} {{ANSIBLE_DEST}}/%/."
-        cmd="$cmd && command docker cp $cid:{{ANSIBLE_PLAYBOOK_PATH}} {{ANSIBLE_DEST}}/%/."
-        echo -e "cid=$cid|cmd=$cmd"
-        eval "$cmd"
-        eval {{ANSIBLE_DEST}}/%/ansible --version
-        eval {{ANSIBLE_DEST}}/%/ansible-playbook --version
-        >&2 echo % OK- {{ANSIBLE_DEST}}/%/ansible {{ANSIBLE_DEST}}/%/ansible-playbook
+        eval "docker images --filter 'reference={{DOCKER_IMAGE}}' || command docker pull {{DOCKER_HUB}}/{{DOCKER_IMAGE}}"
+      cmd: |
+        eval "command docker build --build-arg=ANSIBLE_VERSION={{ANSIBLE_VERSION}} --target=%-{{DOCKER_LABEL}} --tag=%-{{DOCKER_LABEL}} --file={{DOCKER_FILE}} --label={{DOCKER_LABEL}} --pull=false {{DOCKER_PATH}}"
+        eval "cid=$(command docker create %-{{DOCKER_LABEL}})"
+        eval "command docker cp $cid:{{ANSIBLE_PATH}} {{ANSIBLE_DEST}}/%/ansible"
+        eval "command docker cp $cid:{{ANSIBLE_PLAYBOOK_PATH}} {{ANSIBLE_DEST}}/%/ansible-playbook"
+      post-cmd: |
+        eval "{{ANSIBLE_DEST}}/%/ansible-playbook --version"
+        eval "{{ANSIBLE_DEST}}/%/ansible --version"
+        eval "{{ANSIBLE_DEST}}/%/ansible all -i localhost, -c local -m setup"
+        eval ">&2 echo % OK- {{ANSIBLE_DEST}}/%/ansible {{ANSIBLE_DEST}}/%/ansible-playbook"
       when:
         - "{{ITEM}} == {{ITEM}}"
 #        - "{{ITEM}} == {{SPECIFIED_DISTRO}}"
