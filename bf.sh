@@ -39,4 +39,4 @@ ansi >&2 --yellow --bg-black --italic "$(cat $new_distros) :: $added_qty"
 cmd="~/bashful/bashful run bf-BuildDockerImage.yaml $BASHFUL_ARGS"
 
 ansi >&2 --yellow --italic "$cmd"
-#eval "$cmd"
+eval "$cmd"
