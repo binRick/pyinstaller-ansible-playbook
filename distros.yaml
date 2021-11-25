@@ -1,0 +1,18 @@
+distros: &distros
+    -
+      - fedora35
+_distros: 
+    -
+      - fedora34
+      - fedora33
+    -
+      - alpine315
+    -
+      - debian11
+      - debian10
+    -
+      - ubuntu21
+      - ubuntu20
+    -
+      - centos8
+      - centos7

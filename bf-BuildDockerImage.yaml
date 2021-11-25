@@ -8,23 +8,7 @@ x-reference-data:
       ANSIBLE_VERSION: 4.9.0
       SPECIFIED_DISTRO: fedora34
   
-
-  distros: &distros
-      -
-        - fedora35
-        - fedora34
-        - fedora33
-      -
-        - alpine315
-      -
-        - debian11
-        - debian10
-      -
-        - ubuntu21
-        - ubuntu20
-      -
-        - centos8
-        - centos7
+  $include: distros.yaml
 
   _distros: 
       -
