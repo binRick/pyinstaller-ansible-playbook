@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 set -eou pipefail
 cd $(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+BD=$(pwd)
+new_distros=$BD/.distros.yaml
+all_distros=$BD/all_distros.yaml
 VENV_DIR=~/.ansible-build-ansible-binary-venv
 SELECTED_DISTROS="${@:-all}"
 BASHFUL_ARGS=""
@@ -10,10 +13,9 @@ if ! command -v yaml2json >/dev/null; then
 	python3 -m pip install json2yaml
 fi
 
-DISTROS_JSON="$(command cat all_distros.yaml | yaml2json 2>/dev/null | jq '.distros')"
+DISTROS_JSON="$(command cat $all_distros | yaml2json 2>/dev/null | jq '.all_distros' -Mrc)"
 DISTROS="$(json2sh <<<"$DISTROS_JSON" | cut -d= -f2 | sort -u|tr '\n' ' ')"
 
-new_distros=./distros.yaml
 echo -e 'distros: &distros' >$new_distros
 added_qty=0
 while read -r d; do
@@ -36,7 +38,7 @@ if [[ "$added_qty" == 0 ]]; then
 fi
 
 ansi >&2 --magenta --bg-black --italic "$(cat $new_distros)"
-cmd="~/bashful/bashful run bf-BuildDockerImage.yaml $BASHFUL_ARGS"
+cmd="(cd $BD && ~/bashful/bashful run bf-BuildDockerImage.yaml $BASHFUL_ARGS)"
 
 ansi >&2 --yellow --italic "$cmd"
 eval "$cmd"

@@ -1,5 +1,6 @@
 FROM fedora:35 as fedora35-ansible
 ENV ANSIBLE_VERSION=4.9.0
+ARG ANSIBLE_VERSION=$ANSIBLE_VERSION
 RUN  echo ANSIBLE_VERSION=$ANSIBLE_VERSION
 ADD src/ansible-4.9.0.tar.gz /
 COPY passh /usr/bin

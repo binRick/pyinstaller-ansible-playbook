@@ -1,4 +1,4 @@
-distros: &distros
+all_distros: &all_distros
   - fedora35
   - fedora34
   - fedora33
