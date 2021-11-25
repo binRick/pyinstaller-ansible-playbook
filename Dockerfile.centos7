@@ -34,5 +34,5 @@ RUN bash -c "source /root/.ansible-build-venv/bin/activate && pip install /ansib
 
 ENV LANG en_US.UTF-8
 ENV LC_ALL en_US.UTF-8
-RUN passh /compile/Build.sh
-#RUN env PYTHONIOENCODING=utf8 ANSI_DISABLED=1 passh /compile/Build.sh
+#RUN passh /compile/Build.sh
+RUN env PYTHONIOENCODING=utf8 ANSI_DISABLED=1 passh /compile/Build.sh
