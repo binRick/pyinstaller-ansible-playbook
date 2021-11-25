@@ -7,8 +7,9 @@ x-reference-data:
       DOCKER_FILE: unknown
       ANSIBLE_VERSION: 4.9.0
       SPECIFIED_DISTRO: fedora34
-      $include: distros.yaml
-      $include: all_distros.yaml
+
+  $include: distros.yaml
+  $include: all_distros.yaml
 
   distro-vars: &distro-vars
       fedora33: { DOCKER_FILE: Dockerfile.fedora33, DOCKER_IMAGE: 'fedora:33' }
