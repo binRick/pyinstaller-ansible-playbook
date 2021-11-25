@@ -9,7 +9,7 @@ a = Analysis(['ansible-playbook.py'],
                  (six.__file__, '.'),
                  (os.path.dirname(ansible.__file__), 'ansible')
              ],
-             hiddenimports=['uuid', 'ansible', 'configparser', 'smtplib', 'logging.handlers', 'distutils.version', 'pty', 'watchdog', 'watchdog.observers', 'watchdog.events'],
+             hiddenimports=['uuid', 'ansible', 'configparser', 'smtplib', 'logging.handlers', 'distutils.version', 'pty', 'watchdog', 'watchdog.observers', 'watchdog.events', 'ansible.plugins.callback.*'],
              hookspath=[],
              runtime_hooks=[],
              excludes=[],

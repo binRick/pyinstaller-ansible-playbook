@@ -1,4 +1,7 @@
-FROM alpine:315 as alpine315-ansible
+FROM alpine:3.15 as alpine315-ansible
+ENV ANSIBLE_VERSION=4.9.0
+RUN  echo ANSIBLE_VERSION=$ANSIBLE_VERSION
+COPY src/ansible-4.9.0.tar.gz /
 WORKDIR /compile
 RUN     apk update
 RUN     apk add --no-cache \
@@ -27,7 +30,13 @@ RUN     apk add --no-cache \
 COPY ./bin ansi ansible-playbook.py ansible.spec Build.sh utils.sh /compile/
 RUN python3 -m venv /root/.ansible-build-venv
 RUN /bin/bash -c 'source /root/.ansible-build-venv/bin/activate && pip install -q -U pip'
-RUN /bin/bash -c 'source /root/.ansible-build-venv/bin/activate && pip install ansible pyinstaller six watchdog'
+RUN /bin/bash -c 'source /root/.ansible-build-venv/bin/activate && pip install pyinstaller six watchdog'
 COPY passh /bin/passh
 RUN apk --no-cache add coreutils
+
+WORKDIR /
+RUN bash -c "tar zxf ansible-$ANSIBLE_VERSION.tar.gz"
+RUN bash -c "source /root/.ansible-build-venv/bin/activate && pip install /ansible-$ANSIBLE_VERSION"
+
+
 RUN passh ./Build.sh

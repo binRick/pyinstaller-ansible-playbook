@@ -1,11 +1,20 @@
 FROM ubuntu:20.04 as ubuntu20-ansible
+ENV ANSIBLE_VERSION=4.9.0
+RUN  echo ANSIBLE_VERSION=$ANSIBLE_VERSION
+COPY src/ansible-4.9.0.tar.gz /
 RUN apt-get update
 RUN apt-get install -y python3.8-venv binutils python3-dev rsync
 
 WORKDIR /compile
 RUN python3 -m venv /root/.ansible-build-venv
 RUN bash -c 'source /root/.ansible-build-venv/bin/activate && pip install -q -U pip'
-RUN bash -c 'source /root/.ansible-build-venv/bin/activate && pip install ansible pyinstaller six watchdog -q'
+RUN bash -c 'source /root/.ansible-build-venv/bin/activate && pip install pyinstaller six watchdog -q'
 COPY ./bin ansi ansible-playbook.py ansible.spec Build.sh utils.sh /compile/
 COPY passh /usr/bin
-RUN env TERM=xterm-256color passh ./Build.sh
+
+WORKDIR /
+RUN bash -c "tar zxf ansible-$ANSIBLE_VERSION.tar.gz"
+RUN bash -c "source /root/.ansible-build-venv/bin/activate && pip install /ansible-$ANSIBLE_VERSION"
+
+
+RUN env TERM=xterm-256color passh /compile/Build.sh

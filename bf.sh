@@ -1,1 +1,1 @@
-~/bashful/bashful run bf-BuildDockerImage.yaml
+~/bashful/bashful run bf-BuildDockerImage.yaml $@

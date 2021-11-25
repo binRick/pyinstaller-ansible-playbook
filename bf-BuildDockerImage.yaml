@@ -4,6 +4,10 @@ x-reference-data:
 
   vars: &vars
       DOCKER_FILE: unknown
+      ANSIBLE_VERSION: 4.9.0
+      SPECIFIED_DISTRO: fedora34
+  
+
 
   distros: &distros
       -
@@ -55,6 +59,15 @@ config:
   show-task-times: yes
   log-path: /tmp/ansible-docker-images.log
 tasks:
+  - name: Download Ansible Tarballs
+    tags: [download]
+    parallel-tasks:
+    - name: Download Ansible Tarball 
+      pre-cmd: "[[ -d src ]] || mkdir -p src"
+      env: *env
+      vars: *vars
+      cmd: eval "[[ -f src/ansible-{{ANSIBLE_VERSION}}.tar.gz ]] || wget https://files.pythonhosted.org/packages/6c/6a/d2729c854d5487f4c8e18a72eadf53287a2aa16d7924df39751025592ab9/ansible-{{ANSIBLE_VERSION}}.tar.gz -O src/ansible-{{ANSIBLE_VERSION}}.tar.gz"
+
   - name: Build Docker Images
     tags: [build]
     parallel-tasks:
@@ -64,11 +77,10 @@ tasks:
       for-each-list: *distros
       apply-each-vars: *distro-vars
       env: *env
-      vars:
-        SPECIFIED_DISTRO: centos7
+      vars: *vars
 
       pre-cmd: eval "command docker pull {{DOCKER_HUB}}/{{DOCKER_IMAGE}}"
-      cmd: eval "command docker build --target=%-{{DOCKER_LABEL}} --tag=%-{{DOCKER_LABEL}} --file={{DOCKER_FILE}} --label={{DOCKER_LABEL}} --pull=false {{DOCKER_PATH}}"
+      cmd: eval "command docker build --build-arg=ANSIBLE_VERSION={{ANSIBLE_VERSION}} --target=%-{{DOCKER_LABEL}} --tag=%-{{DOCKER_LABEL}} --file={{DOCKER_FILE}} --label={{DOCKER_LABEL}} --pull=false {{DOCKER_PATH}}"
       post-cmd: |
         [[ -d "{{ANSIBLE_DEST}}/%" ]] || mkdir -p "{{ANSIBLE_DEST}}/%"
         cid=$(command docker create %-{{DOCKER_LABEL}})

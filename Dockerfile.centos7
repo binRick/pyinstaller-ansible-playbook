@@ -1,4 +1,7 @@
 FROM centos:7 as centos7-ansible
+ENV ANSIBLE_VERSION=4.9.0
+RUN  echo ANSIBLE_VERSION=$ANSIBLE_VERSION
+COPY src/ansible-4.9.0.tar.gz /
 ENV PYTHONIOENCODING=utf8
 ENV ANSI_DISABLED=1
 
@@ -13,7 +16,7 @@ RUN yum -y install bash zsh
 
 RUN python3 -m venv /root/.ansible-build-venv
 RUN bash -c 'source /root/.ansible-build-venv/bin/activate && pip install -q -U pip'
-RUN bash -c 'source /root/.ansible-build-venv/bin/activate && pip install ansible pyinstaller six watchdog'
+RUN bash -c 'source /root/.ansible-build-venv/bin/activate && pip install pyinstaller six watchdog'
 
 
 
@@ -22,6 +25,12 @@ RUN passh ./Build.sh
 
 #RUN /bin/bash -c 'export PYTHONIOENCODING=utf8 && source /root/.ansible-build-venv/bin/activate && pip3 install -q -U pip'
 
-#RUN /bin/bash -c 'source /root/.ansible-build-venv/bin/activate && pip3 install ansible pyinstaller six watchdog -U -q'
+#RUN /bin/bash -c 'source /root/.ansible-build-venv/bin/activate && pip3 install pyinstaller six watchdog -U -q'
 RUN yum list | grep lang
+
+WORKDIR /
+RUN bash -c "tar zxf ansible-$ANSIBLE_VERSION.tar.gz"
+RUN bash -c "source /root/.ansible-build-venv/bin/activate && pip install /ansible-$ANSIBLE_VERSION"
+
+
 #RUN env PYTHONIOENCODING=utf8 ANSI_DISABLED=1 passh ./Build.sh
