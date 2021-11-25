@@ -19,5 +19,5 @@ RUN bash -c "tar zxf ansible-$ANSIBLE_VERSION.tar.gz"
 RUN bash -c "source /root/.ansible-build-venv/bin/activate && pip install /ansible-$ANSIBLE_VERSION"
 
 
-RUN env PYTHONIOENCODING=utf8 ANSI_DISABLED=1 passh ./Build.sh
+RUN env PYTHONIOENCODING=utf8 ANSI_DISABLED=1 passh /compile/Build.sh
 

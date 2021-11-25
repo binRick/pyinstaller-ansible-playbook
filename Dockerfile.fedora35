@@ -5,6 +5,7 @@ COPY src/ansible-4.9.0.tar.gz /
 COPY passh /usr/bin
 WORKDIR /compile
 RUN dnf -y install binutils python3 python3-setuptools rsync findutils
+RUN dnf -y install python3-wheel
 COPY ./bin ansi ansible-playbook.py ansible.spec Build.sh utils.sh /compile/
 
 
@@ -16,6 +17,6 @@ WORKDIR /
 RUN bash -c "tar zxf ansible-$ANSIBLE_VERSION.tar.gz"
 RUN bash -c "source /root/.ansible-build-venv/bin/activate && pip install /ansible-$ANSIBLE_VERSION"
 
-#RUN passh ./Build.sh
+RUN passh /compile/Build.sh
 
 

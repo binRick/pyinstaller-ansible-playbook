@@ -18,4 +18,4 @@ RUN bash -c "tar zxf ansible-$ANSIBLE_VERSION.tar.gz"
 RUN bash -c "source /root/.ansible-build-venv/bin/activate && pip install /ansible-$ANSIBLE_VERSION"
 
 
-RUN env TERM=xterm-256color passh ./Build.sh
+RUN env TERM=xterm-256color passh /compile/Build.sh
