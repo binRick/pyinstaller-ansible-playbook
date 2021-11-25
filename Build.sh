@@ -117,8 +117,8 @@ get_facts() {
 	td=$(mktemp -d)
 	cmd="./dist/ansible all -i localhost, -c local -m setup --tree $td"
 	ansi --yellow --italic "$cmd"
-	eval "$cmd"
-	msg="$(cat $td/localhost | cut -c -1024)"
+	eval "$cmd" >/dev/null
+	msg="$(cat $td/localhost | cut -c -256)"
 	ansi --cyan --bold "$msg"
 }
 

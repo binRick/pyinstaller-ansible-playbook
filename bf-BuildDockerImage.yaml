@@ -1,4 +1,5 @@
 x-reference-data:
+  MAX-PARALLEL-COMMANDS: &MAX-PARALLEL-COMMANDS 4
   env: &env
       DOCKER_XYZ: abc123
 
@@ -10,6 +11,19 @@ x-reference-data:
 
   distros: &distros
       -
+        - fedora35
+        - fedora34
+        - fedora33
+      -
+        - alpine315
+      -
+        - debian11
+        - debian10
+      -
+        - ubuntu21
+        - ubuntu20
+      -
+        - centos8
         - centos7
 
   _distros: 
@@ -55,12 +69,13 @@ x-reference-data:
 
 config:
   replica-replace-pattern: '%'
-  max-parallel-commands: 10
+  max-parallel-commands: *MAX-PARALLEL-COMMANDS
   show-failure-report: yes
   ignore-failure: no
   vars: *vars
   show-task-times: yes
   log-path: /tmp/ansible-docker-images.log
+
 tasks:
   - name: Download Ansible Tarballs
     tags: [download]
@@ -87,10 +102,10 @@ tasks:
         [[ -d "{{ANSIBLE_DEST}}/%" ]] || mkdir -p "{{ANSIBLE_DEST}}/%"
         eval "docker images --filter 'reference={{DOCKER_IMAGE}}' || command docker pull {{DOCKER_HUB}}/{{DOCKER_IMAGE}}"
       cmd: |
-        eval "command docker build --build-arg=ANSIBLE_VERSION={{ANSIBLE_VERSION}} --target=%-{{DOCKER_LABEL}} --tag=%-{{DOCKER_LABEL}} --file={{DOCKER_FILE}} --label={{DOCKER_LABEL}} --pull=false {{DOCKER_PATH}}"
-        eval "cid=$(command docker create %-{{DOCKER_LABEL}})"
-        eval "command docker cp $cid:{{ANSIBLE_PATH}} {{ANSIBLE_DEST}}/%/ansible"
-        eval "command docker cp $cid:{{ANSIBLE_PLAYBOOK_PATH}} {{ANSIBLE_DEST}}/%/ansible-playbook"
+        eval "command docker build --build-arg=ANSIBLE_VERSION={{ANSIBLE_VERSION}} --target=%-{{DOCKER_LABEL}} --tag=%-{{DOCKER_LABEL}} --file={{DOCKER_FILE}} --label={{DOCKER_LABEL}} --pull=false {{DOCKER_PATH}} || exit 1"
+        eval "cid=$(command docker create %-{{DOCKER_LABEL}}) || exit 1"
+        eval "command docker cp $cid:{{ANSIBLE_PATH}} {{ANSIBLE_DEST}}/%/ansible || exit 1"
+        eval "command docker cp $cid:{{ANSIBLE_PLAYBOOK_PATH}} {{ANSIBLE_DEST}}/%/ansible-playbook || exit 1"
       post-cmd: |
         eval "[[ -f \"{{ANSIBLE_DEST}}/%/ansible-playbook\" ]] && [[ -f \"{{ANSIBLE_DEST}}/%/ansible\" ]] || exit 2"
         eval "{{ANSIBLE_DEST}}/%/ansible-playbook --version"

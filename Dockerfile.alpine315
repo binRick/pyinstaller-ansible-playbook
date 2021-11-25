@@ -1,8 +1,7 @@
 FROM alpine:3.15 as alpine315-ansible
 ENV ANSIBLE_VERSION=4.9.0
 RUN  echo ANSIBLE_VERSION=$ANSIBLE_VERSION
-COPY src/ansible-4.9.0.tar.gz /
-RUN sh -c "tar zxf ansible-$ANSIBLE_VERSION.tar.gz"
+ADD src/ansible-4.9.0.tar.gz /
 WORKDIR /compile
 RUN     apk update
 RUN     apk add --no-cache \
