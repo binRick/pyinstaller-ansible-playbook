@@ -1,12 +1,10 @@
 x-reference-data:
   MAX-PARALLEL-COMMANDS: &MAX-PARALLEL-COMMANDS 4
   env: &env
-      DOCKER_XYZ: abc123
 
   vars: &vars
       DOCKER_FILE: unknown
       ANSIBLE_VERSION: 4.9.0
-      SPECIFIED_DISTRO: fedora34
 
   $include: distros.yaml
   $include: all_distros.yaml
@@ -36,12 +34,31 @@ x-reference-data:
         DOCKER_HUB: docker.io
 
 config:
-  replica-replace-pattern: '%'
-  max-parallel-commands: *MAX-PARALLEL-COMMANDS
-  show-failure-report: yes
+  show-summary-errors: yes
+  show-summary-steps: yes
+  show-summary-footer: yes
+  show-summary-times: yes
+
+  stop-on-failure: yes
   ignore-failure: no
-  vars: *vars
+  show-failure-report: yes
+
+  success-status-color: 30
+  running-status-color: 200
+  pending-status-color: 220
+  error-status-color: 180
+
   show-task-times: yes
+  show-task-output: yes
+
+  single-line: no
+  bullet-char: "•"
+  replica-replace-pattern: '%'
+  collapse-on-completion: yes
+  event-driven: yes
+
+  max-parallel-commands: *MAX-PARALLEL-COMMANDS
+  vars: *vars
   log-path: /tmp/ansible-docker-images.log
 
 tasks:
