@@ -2,7 +2,7 @@
 set -eou pipefail
 cd $(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 BD=$(pwd)
-new_distros=$BD/.distros.yaml
+new_distros=$BD/distros.yaml
 all_distros=$BD/all_distros.yaml
 VENV_DIR=~/.ansible-build-ansible-binary-venv
 SELECTED_DISTROS="${@:-all}"

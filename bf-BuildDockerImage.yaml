@@ -7,7 +7,7 @@ x-reference-data:
       DOCKER_FILE: unknown
       ANSIBLE_VERSION: 4.9.0
       SPECIFIED_DISTRO: fedora34
-      $include: .distros.yaml
+      $include: distros.yaml
       $include: all_distros.yaml
 
   distro-vars: &distro-vars
