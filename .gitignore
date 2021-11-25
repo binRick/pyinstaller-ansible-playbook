@@ -136,3 +136,4 @@ bash_utils
 .bashful
 binaries
 src
+distros.yaml
