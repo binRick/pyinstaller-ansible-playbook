@@ -8,8 +8,11 @@ x-reference-data:
       SPECIFIED_DISTRO: fedora34
   
 
-
   distros: &distros
+      -
+        - centos7
+
+  _distros: 
       -
         - fedora35
         - fedora34
@@ -25,7 +28,6 @@ x-reference-data:
       -
         - centos7
         - centos8
-  _distros: 
 
   distro-vars: &distro-vars
       fedora33: { DOCKER_FILE: Dockerfile.fedora33, DOCKER_IMAGE: 'fedora:33' }
@@ -90,10 +92,11 @@ tasks:
         eval "command docker cp $cid:{{ANSIBLE_PATH}} {{ANSIBLE_DEST}}/%/ansible"
         eval "command docker cp $cid:{{ANSIBLE_PLAYBOOK_PATH}} {{ANSIBLE_DEST}}/%/ansible-playbook"
       post-cmd: |
+        eval "[[ -f \"{{ANSIBLE_DEST}}/%/ansible-playbook\" ]] && [[ -f \"{{ANSIBLE_DEST}}/%/ansible\" ]] || exit 2"
         eval "{{ANSIBLE_DEST}}/%/ansible-playbook --version"
         eval "{{ANSIBLE_DEST}}/%/ansible --version"
         eval "{{ANSIBLE_DEST}}/%/ansible all -i localhost, -c local -m setup"
-        eval ">&2 echo % OK- {{ANSIBLE_DEST}}/%/ansible {{ANSIBLE_DEST}}/%/ansible-playbook"
+        eval "ls {{ANSIBLE_DEST}}/%/ansible {{ANSIBLE_DEST}}/%/ansible-playbook && echo OK"
       when:
         - "{{ITEM}} == {{ITEM}}"
 #        - "{{ITEM}} == {{SPECIFIED_DISTRO}}"
