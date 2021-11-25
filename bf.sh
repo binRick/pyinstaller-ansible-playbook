@@ -16,7 +16,7 @@ DISTROS="$(json2sh <<<"$DISTROS_JSON" | cut -d= -f2 | sort -u)"
 new_distros=./distros.yaml
 echo -e "distros: &distros" >$new_distros
 added_qty=0
-for d in $DISTROS; do
+while read -r d; do
 	add=0
 	for D in $SELECTED_DISTROS; do
 		if [[ "$D" == "all" || "$d" == "$D" ]]; then
@@ -27,7 +27,7 @@ for d in $DISTROS; do
 		echo -e "  -\n    - $d" >>$new_distros
 		added_qty=$(($added_qty + 1))
 	fi
-done
+done < <(echo -e "$DISTROS"|tr ' ' '\n'|sort -u|egrep -v '^$')"
 
 if [[ "$added_qty" == 0 ]]; then
 	ansi --red --bg-black "No Distro Selected."
