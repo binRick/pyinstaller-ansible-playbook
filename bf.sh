@@ -17,7 +17,7 @@ fi
 DISTROS_JSON="$(command cat $all_distros | yaml2json 2>/dev/null | jq '.all_distros' -Mrc)"
 DISTROS="$(json2sh <<<"$DISTROS_JSON" | cut -d= -f2 | sort -u|tr '\n' ' ')"
 
-echo -e '' >$new_distros
+echo -ne "" >$new_distros
 added_qty=0
 while read -r d; do
 	add=0
@@ -27,7 +27,7 @@ while read -r d; do
 		fi
 	done
 	if [[ "$add" == 1 ]]; then
-		echo -e "- $d" >>$new_distros
+		echo -e "     - $d" >>$new_distros
 		added_qty=$(($added_qty + 1))
 	fi
 done < <(echo -e "$DISTROS"|tr ' ' '\n'|sort -u|egrep -v '^$')

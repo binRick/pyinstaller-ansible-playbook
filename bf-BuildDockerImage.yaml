@@ -4,13 +4,11 @@ x-reference-data:
 
   vars: &vars
     DOCKER_FILE: unknown
+    ANSIBLE_VERSION: 4.9.0
 
   distros: &distros
     - 
-      $include: distros.yaml
-
-  all_distros: &all_distros
-    $include: all_distros.yaml
+      - fedora35
 
   distro-vars: &distro-vars
       fedora33: { DOCKER_FILE: Dockerfile.fedora33, DOCKER_IMAGE: 'fedora:33' }
@@ -46,6 +44,18 @@ config:
   log-path: /tmp/ansible-docker-images.log
 
 tasks:
+  - name: Build Docker Images
+    tags: [t]
+    parallel-tasks:
+    - name: t %
+      stdout-log: /tmp/ansible-docker-image-%-stdout.log
+      stderr-log: /tmp/ansible-docker-image-%-stderr.log
+      for-each-list: *distros
+      apply-each-vars: *distro-vars
+      env: *env
+      vars: *vars
+      cmd: eval "echo %, {{ANSIBLE_VERSION}}, {{ANSIBLE_DEST}}"
+
   - name: Download Ansible Tarballs
     tags: [download]
     parallel-tasks:
