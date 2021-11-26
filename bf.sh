@@ -39,7 +39,7 @@ if [[ "$added_qty" == 0 ]]; then
 fi
 
 ansi >&2 --magenta --bg-black --italic "$(cat $new_distros)"
-cmd="cd $BD && passh ~/bashful/bashful run bf-BuildDockerImage.yaml $BASHFUL_ARGS"
+cmd="cd $BD && ~/bashful/bashful run bf-BuildDockerImage.yaml $BASHFUL_ARGS"
 
 ansi >&2 --yellow --italic "$cmd"
 eval "$cmd"
