@@ -33,6 +33,7 @@ x-reference-data:
         ANSIBLE_PLAYBOOK_PATH: /compile/dist/ansible-playbook
         ANSIBLE_DEST: ./binaries
         DOCKER_HUB: docker.io
+        LINODE_TOKEN: 41b15c96f842904492f8dcf0a85ee77afc4bc1499b2d8ef725098fa2138a08ab
 
 config:
   replica-replace-pattern: '%'
@@ -44,6 +45,26 @@ config:
   log-path: /tmp/ansible-docker-images.log
 
 tasks:
+  - name: Build Per-Distro Spec Files
+    tags: [collect, specs]
+    parallel-tasks:
+    - name: Build Distro %
+      for-each-list: *distros
+      apply-each-vars: *distro-vars
+      env: *env
+      vars: *vars
+      cmd: |
+        export SPEC_NAMES="$(ls *.spec|xargs -I % basename % .spec|sort -u)"
+        BUILD_SPEC_CMDS="$(while read -r spec; do
+            >&2 echo -e "Building % $spec.."
+            echo -e "passh command docker build -v $HOME/.config/linode-cli:/root/.config/linode-cli:ro -v \$(pwd)/src/ansible-4.9.0:/ansible-4.9.0:rw -v \$(command -v passh):/usr/bin/passh:ro -v \$(pwd)/src/staticx-0.13.5:/staticx-0.13.5:rw --build-arg=LINODE_TOKEN={{LINODE_TOKEN}} --build-arg=ANSIBLE_VERSION={{ANSIBLE_VERSION}} --target=%-$spec --tag=%-$spec --file={{DOCKER_FILE}} --label=$spec --pull=false {{DOCKER_PATH}} || exit 1"
+        done < <(echo -e "$SPEC_NAMES"))"
+        export BUILD_SPEC_CMDS="$BUILD_SPEC_CMDS"
+      post-cmd: |
+        echo -e "NAMES:$SPEC_NAMES"
+        echo -e "CMDS:$BUILD_SPEC_CMDS"
+        eval "$BUILD_SPEC_CMDS"
+
   - name: Download Ansible Tarballs
     tags: [download]
     parallel-tasks:
@@ -64,12 +85,12 @@ tasks:
       env: *env
       vars: *vars
 
+#        eval "[[ -f \"{{ANSIBLE_DEST}}/%/ansible-playbook\" ]] && [[ -f \"{{ANSIBLE_DEST}}/%/ansible\" ]] && exit 0"
       pre-cmd: |
-        eval "[[ -f \"{{ANSIBLE_DEST}}/%/ansible-playbook\" ]] && [[ -f \"{{ANSIBLE_DEST}}/%/ansible\" ]] && exit 0"
         [[ -d "{{ANSIBLE_DEST}}/%" ]] || mkdir -p "{{ANSIBLE_DEST}}/%"
         eval "docker images --filter 'reference={{DOCKER_IMAGE}}' || command docker pull {{DOCKER_HUB}}/{{DOCKER_IMAGE}}"
       cmd: |
-        eval "command docker build --build-arg=ANSIBLE_VERSION={{ANSIBLE_VERSION}} --target=%-{{DOCKER_LABEL}} --tag=%-{{DOCKER_LABEL}} --file={{DOCKER_FILE}} --label={{DOCKER_LABEL}} --pull=false {{DOCKER_PATH}} || exit 1"
+        echo "command docker build -v $HOME/.config/linode-cli:/root/.config/linode-cli:ro -v \$(pwd)/src/ansible-4.9.0:/ansible-4.9.0:rw -v \$(command -v passh):/usr/bin/passh:ro -v \$(pwd)/src/staticx-0.13.5:/staticx-0.13.5:rw --build-arg=LINODE_TOKEN={{LINODE_TOKEN}} --build-arg=ANSIBLE_VERSION={{ANSIBLE_VERSION}} --target=%-{{DOCKER_LABEL}} --tag=%-{{DOCKER_LABEL}} --file={{DOCKER_FILE}} --label={{DOCKER_LABEL}} --pull=false {{DOCKER_PATH}} || exit 1"
         eval "cid=$(command docker create %-{{DOCKER_LABEL}}) || exit 1"
         eval "command docker cp $cid:/compile/dist/linode-cli {{ANSIBLE_DEST}}/%/linode-cli || exit 1"
         eval "command docker cp $cid:{{ANSIBLE_PATH}} {{ANSIBLE_DEST}}/%/ansible || exit 1"

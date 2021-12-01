@@ -50,9 +50,11 @@ clean() {
 	true
 }
 ANSIBLE_ALIASES="ansible"
+SPEC_FILES="linodecli json2yaml ansible"
 compile() {
-	do_exec "pyinstaller linodecli.spec"
-	do_exec "pyinstaller ansible.spec"
+  for f in $SPEC_FILES; do
+  	do_exec "pyinstaller $f.spec"
+  done
 	ansi >&2 --magenta --bold "$(find dist -type f)"
   
 	(
