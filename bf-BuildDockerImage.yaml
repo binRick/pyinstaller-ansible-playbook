@@ -90,14 +90,18 @@ tasks:
         [[ -d "{{ANSIBLE_DEST}}/%" ]] || mkdir -p "{{ANSIBLE_DEST}}/%"
         eval "docker images --filter 'reference={{DOCKER_IMAGE}}' || command docker pull {{DOCKER_HUB}}/{{DOCKER_IMAGE}}"
       cmd: |
-        echo "command docker build -v $HOME/.config/linode-cli:/root/.config/linode-cli:ro -v \$(pwd)/src/ansible-4.9.0:/ansible-4.9.0:rw -v \$(command -v passh):/usr/bin/passh:ro -v \$(pwd)/src/staticx-0.13.5:/staticx-0.13.5:rw --build-arg=LINODE_TOKEN={{LINODE_TOKEN}} --build-arg=ANSIBLE_VERSION={{ANSIBLE_VERSION}} --target=%-{{DOCKER_LABEL}} --tag=%-{{DOCKER_LABEL}} --file={{DOCKER_FILE}} --label={{DOCKER_LABEL}} --pull=false {{DOCKER_PATH}} || exit 1"
+        eval "command docker build -v $HOME/.config/linode-cli:/root/.config/linode-cli:ro -v \$(pwd)/src/ansible-4.9.0:/ansible-4.9.0:rw -v \$(pwd)/src/staticx-0.13.5:/staticx-0.13.5:rw --build-arg=LINODE_TOKEN={{LINODE_TOKEN}} --build-arg=ANSIBLE_VERSION={{ANSIBLE_VERSION}} --target=%-{{DOCKER_LABEL}} --tag=%-{{DOCKER_LABEL}} --file={{DOCKER_FILE}} --label={{DOCKER_LABEL}} --pull=false {{DOCKER_PATH}} || exit 1"
+        eval "command docker build -v $HOME/.config/linode-cli:/root/.config/linode-cli:ro -v \$(pwd)/src/ansible-4.9.0:/ansible-4.9.0:rw -v \$(pwd)/src/staticx-0.13.5:/staticx-0.13.5:rw --build-arg=LINODE_TOKEN={{LINODE_TOKEN}} --build-arg=ANSIBLE_VERSION={{ANSIBLE_VERSION}} --target=%-linodecli --tag=%-linodecli --file={{DOCKER_FILE}} --label=linodecli --pull=false {{DOCKER_PATH}} || exit 1"
         eval "cid=$(command docker create %-{{DOCKER_LABEL}}) || exit 1"
-        eval "command docker cp $cid:/compile/dist/linode-cli {{ANSIBLE_DEST}}/%/linode-cli || exit 1"
-        eval "command docker cp $cid:{{ANSIBLE_PATH}} {{ANSIBLE_DEST}}/%/ansible || exit 1"
+        eval "cid_linodecli=$(command docker create %-linodecli) || exit 1"
+        eval "command docker run --rm %-{{DOCKER_LABEL}} find /compile/dist -type f"
+        eval "command docker run --rm %-linodecli find /compile/dist -type f"
+        eval "command docker cp \$cid:{{ANSIBLE_PATH}}-playbook {{ANSIBLE_DEST}}/%/ansible || exit 1"
+        eval "command docker cp \$cid_linodecli:/compile/dist/linode-cli {{ANSIBLE_DEST}}/%/linode-cli || exit 1"
       post-cmd: |
         eval "{{ANSIBLE_DEST}}/%/ansible --version"
-        eval "{{ANSIBLE_DEST}}/%/linode-cli --version"
-        eval "ls {{ANSIBLE_DEST}}/%/linode-cli && echo linode-cli OK"
+        echo eval "{{ANSIBLE_DEST}}/%/linode-cli --version"
+        echo eval "ls {{ANSIBLE_DEST}}/%/linode-cli && echo linode-cli OK"
         eval "ls {{ANSIBLE_DEST}}/%/ansible && echo ansible OK"
       when:
         - "{{ITEM}} == {{ITEM}}"
