@@ -49,15 +49,16 @@ clean() {
 	[[ -d dist ]] && rm -rf dist
 	true
 }
-
+ANSIBLE_ALIASES="ansible"
 compile() {
+	do_exec "pyinstaller linodecli.spec"
 	do_exec "pyinstaller ansible.spec"
-	#	while read -r l; do
-	#		msg="$(ansi --yellow --italic "$l")"
-	#		echo -e "$msg"
-	#	done < <(pyinstaller ansible.spec)
 	ansi >&2 --magenta --bold "$(find dist -type f)"
-	(cd dist && rsync ansible-playbook ansible)
+  
+	(
+    cd dist
+    for a in $ANSIBLE_ALIASES; do rsync ansible-playbook $a; done
+  )
 }
 
 do_exec() {

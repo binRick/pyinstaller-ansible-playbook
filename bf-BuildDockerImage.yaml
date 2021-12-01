@@ -44,18 +44,6 @@ config:
   log-path: /tmp/ansible-docker-images.log
 
 tasks:
-  - name: Build Docker Images
-    tags: [t]
-    parallel-tasks:
-    - name: t %
-      stdout-log: /tmp/ansible-docker-image-%-stdout.log
-      stderr-log: /tmp/ansible-docker-image-%-stderr.log
-      for-each-list: *distros
-      apply-each-vars: *distro-vars
-      env: *env
-      vars: *vars
-      cmd: eval "echo %, {{ANSIBLE_VERSION}}, {{ANSIBLE_DEST}}"
-
   - name: Download Ansible Tarballs
     tags: [download]
     parallel-tasks:
@@ -83,14 +71,43 @@ tasks:
       cmd: |
         eval "command docker build --build-arg=ANSIBLE_VERSION={{ANSIBLE_VERSION}} --target=%-{{DOCKER_LABEL}} --tag=%-{{DOCKER_LABEL}} --file={{DOCKER_FILE}} --label={{DOCKER_LABEL}} --pull=false {{DOCKER_PATH}} || exit 1"
         eval "cid=$(command docker create %-{{DOCKER_LABEL}}) || exit 1"
+        eval "command docker cp $cid:/compile/dist/linode-cli {{ANSIBLE_DEST}}/%/linode-cli || exit 1"
         eval "command docker cp $cid:{{ANSIBLE_PATH}} {{ANSIBLE_DEST}}/%/ansible || exit 1"
-        eval "command docker cp $cid:{{ANSIBLE_PLAYBOOK_PATH}} {{ANSIBLE_DEST}}/%/ansible-playbook || exit 1"
       post-cmd: |
-        eval "[[ -f \"{{ANSIBLE_DEST}}/%/ansible-playbook\" ]] && [[ -f \"{{ANSIBLE_DEST}}/%/ansible\" ]] || exit 2"
-        eval "{{ANSIBLE_DEST}}/%/ansible-playbook --version"
         eval "{{ANSIBLE_DEST}}/%/ansible --version"
-        eval "{{ANSIBLE_DEST}}/%/ansible all -i localhost, -c local -m setup"
-        eval "ls {{ANSIBLE_DEST}}/%/ansible {{ANSIBLE_DEST}}/%/ansible-playbook && echo OK"
+        eval "{{ANSIBLE_DEST}}/%/linode-cli --version"
+        eval "ls {{ANSIBLE_DEST}}/%/linode-cli && echo linode-cli OK"
+        eval "ls {{ANSIBLE_DEST}}/%/ansible && echo ansible OK"
       when:
         - "{{ITEM}} == {{ITEM}}"
 #        - "{{ITEM}} == {{SPECIFIED_DISTRO}}"
+        
+  - name: Alias Binaries
+    tags: [alias]
+    parallel-tasks:
+    - name: Alias %
+      stdout-log: /tmp/ansible-docker-image-alias-%-stdout.log
+      stderr-log: /tmp/ansible-docker-image-alias-%-stderr.log
+      for-each-list: 
+      - 
+        - ansible-playbook
+        - ansible-inventory
+        - ansible-vault
+        - ansible-config
+        - ansible-connection
+        - ansible-console
+        - ansible-doc
+        - ansible-galaxy
+        - ansible-pull
+      apply-each-vars: *distro-vars
+      env: *env
+      vars: *vars
+
+      pre-cmd: |
+        export DISTROS="$(ls binaries/*/ansible|xargs -I % dirname %|xargs -I % basename %|sort -u)"
+        echo DISTROS=$DISTROS
+        echo PREOK
+      cmd: |
+        echo DISTROS=$DISTROS
+        eval "while read -r d; do cp -f {{ANSIBLE_DEST}}/\$d/ansible {{ANSIBLE_DEST}}/\$d/{{ITEM}}; done < <(echo -e \"$DISTROS\")"
+        echo CMDOK

@@ -1,15 +1,15 @@
 # -*- mode: python -*-
-import os, six, ansible
+import os, six, linodecli
 block_cipher = None
 
-a = Analysis(['ansible-playbook.py'],
+a = Analysis(['linode-cli.py'],
              pathex=None,
              binaries=None,
              datas=[
                  (six.__file__, '.'),
-                 (os.path.dirname(ansible.__file__), 'ansible')
+                 (os.path.dirname(linodecli.__file__), 'linodecli')
              ],
-             hiddenimports=['uuid', 'ansible', 'configparser', 'smtplib', 'logging.handlers', 'distutils.version', 'pty', 'watchdog', 'watchdog.observers', 'watchdog.events', 'ansible.plugins.callback.*', 'email.mime', 'ansible.cli.connection', 'email.mime.*'],
+             hiddenimports=['linodecli'],
              hookspath=[],
              runtime_hooks=[],
              excludes=[],
@@ -25,8 +25,8 @@ exe = EXE(pyz,
           a.binaries,
           a.zipfiles,
           a.datas,
-          name='ansible-playbook',
+          name='linode-cli',
           debug=False,
-          strip=False,
+          strip=True,
           upx=True,
           console=True)
