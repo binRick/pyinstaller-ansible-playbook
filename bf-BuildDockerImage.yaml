@@ -2,6 +2,30 @@ x-reference-data:
   env: &env
     DOCKER_XYZ: abc123
 
+  ansible-aliases: &ansible-aliases
+        - ansible-playbook
+        - ansible-inventory
+        - ansible-vault
+        - ansible-config
+        - ansible-connection
+        - ansible-console
+        - ansible-doc
+        - ansible-galaxy
+        - ansible-pull
+  tested-binaries: &tested-binaries
+    - ansible
+    - ansible-playbook
+    - ansible-inventory
+    - ansible-vault
+    - ansible-config
+    - ansible-connection
+    - ansible-console
+    - ansible-doc
+    - ansible-galaxy
+    - ansible-pull
+    - json2yaml
+    - yaml2json
+    - linode-cli
   vars: &vars
     DOCKER_FILE: unknown
     ANSIBLE_VERSION: 4.9.0
@@ -45,6 +69,15 @@ config:
   log-path: /tmp/ansible-docker-images.log
 
 tasks:
+  - name: Download Ansible Tarballs
+    tags: [download]
+    parallel-tasks:
+    - name: Download Ansible Tarball
+      pre-cmd: "[[ -d src ]] || mkdir -p src"
+      env: *env
+      vars: *vars
+      cmd: eval "[[ -f src/ansible-{{ANSIBLE_VERSION}}.tar.gz ]] || wget https://files.pythonhosted.org/packages/6c/6a/d2729c854d5487f4c8e18a72eadf53287a2aa16d7924df39751025592ab9/ansible-{{ANSIBLE_VERSION}}.tar.gz -O src/ansible-{{ANSIBLE_VERSION}}.tar.gz"
+
   - name: Build Per-Distro Spec Files
     tags: [collect, specs]
     parallel-tasks:
@@ -65,16 +98,7 @@ tasks:
         echo -e "CMDS:$BUILD_SPEC_CMDS"
         eval "$BUILD_SPEC_CMDS"
 
-  - name: Download Ansible Tarballs
-    tags: [download]
-    parallel-tasks:
-    - name: Download Ansible Tarball
-      pre-cmd: "[[ -d src ]] || mkdir -p src"
-      env: *env
-      vars: *vars
-      cmd: eval "[[ -f src/ansible-{{ANSIBLE_VERSION}}.tar.gz ]] || wget https://files.pythonhosted.org/packages/6c/6a/d2729c854d5487f4c8e18a72eadf53287a2aa16d7924df39751025592ab9/ansible-{{ANSIBLE_VERSION}}.tar.gz -O src/ansible-{{ANSIBLE_VERSION}}.tar.gz"
-
-  - name: Build Docker Images
+  - name: Copy Docker Image Binaries
     tags: [build]
     parallel-tasks:
     - name: Build Docker Image %
@@ -90,14 +114,18 @@ tasks:
         [[ -d "{{ANSIBLE_DEST}}/%" ]] || mkdir -p "{{ANSIBLE_DEST}}/%"
         eval "docker images --filter 'reference={{DOCKER_IMAGE}}' || command docker pull {{DOCKER_HUB}}/{{DOCKER_IMAGE}}"
       cmd: |
-        eval "command docker build -v $HOME/.config/linode-cli:/root/.config/linode-cli:ro -v \$(pwd)/src/ansible-4.9.0:/ansible-4.9.0:rw -v \$(pwd)/src/staticx-0.13.5:/staticx-0.13.5:rw --build-arg=LINODE_TOKEN={{LINODE_TOKEN}} --build-arg=ANSIBLE_VERSION={{ANSIBLE_VERSION}} --target=%-{{DOCKER_LABEL}} --tag=%-{{DOCKER_LABEL}} --file={{DOCKER_FILE}} --label={{DOCKER_LABEL}} --pull=false {{DOCKER_PATH}} || exit 1"
-        eval "command docker build -v $HOME/.config/linode-cli:/root/.config/linode-cli:ro -v \$(pwd)/src/ansible-4.9.0:/ansible-4.9.0:rw -v \$(pwd)/src/staticx-0.13.5:/staticx-0.13.5:rw --build-arg=LINODE_TOKEN={{LINODE_TOKEN}} --build-arg=ANSIBLE_VERSION={{ANSIBLE_VERSION}} --target=%-linodecli --tag=%-linodecli --file={{DOCKER_FILE}} --label=linodecli --pull=false {{DOCKER_PATH}} || exit 1"
         eval "cid=$(command docker create %-{{DOCKER_LABEL}}) || exit 1"
         eval "cid_linodecli=$(command docker create %-linodecli) || exit 1"
+        eval "cid_json2yaml=$(command docker create %-json2yaml) || exit 1"
+        eval "cid_yaml2json=$(command docker create %-yaml2json) || exit 1"
         eval "command docker run --rm %-{{DOCKER_LABEL}} find /compile/dist -type f"
         eval "command docker run --rm %-linodecli find /compile/dist -type f"
+        eval "command docker run --rm %-json2yaml find /compile/dist -type f"
+        eval "command docker run --rm %-yaml2json find /compile/dist -type f"
         eval "command docker cp \$cid:{{ANSIBLE_PATH}}-playbook {{ANSIBLE_DEST}}/%/ansible || exit 1"
         eval "command docker cp \$cid_linodecli:/compile/dist/linode-cli {{ANSIBLE_DEST}}/%/linode-cli || exit 1"
+        eval "command docker cp \$cid_json2yaml:/compile/dist/json2yaml {{ANSIBLE_DEST}}/%/. || exit 1"
+        eval "command docker cp \$cid_yaml2json:/compile/dist/yaml2json {{ANSIBLE_DEST}}/%/. || exit 1"
       post-cmd: |
         eval "{{ANSIBLE_DEST}}/%/ansible --version"
         echo eval "{{ANSIBLE_DEST}}/%/linode-cli --version"
@@ -107,27 +135,17 @@ tasks:
         - "{{ITEM}} == {{ITEM}}"
 #        - "{{ITEM}} == {{SPECIFIED_DISTRO}}"
         
-  - name: Alias Binaries
+  - name: Alias Ansible Binaries
     tags: [alias]
     parallel-tasks:
     - name: Alias %
       stdout-log: /tmp/ansible-docker-image-alias-%-stdout.log
       stderr-log: /tmp/ansible-docker-image-alias-%-stderr.log
       for-each-list: 
-      - 
-        - ansible-playbook
-        - ansible-inventory
-        - ansible-vault
-        - ansible-config
-        - ansible-connection
-        - ansible-console
-        - ansible-doc
-        - ansible-galaxy
-        - ansible-pull
+      - *ansible-aliases
       apply-each-vars: *distro-vars
       env: *env
       vars: *vars
-
       pre-cmd: |
         export DISTROS="$(ls binaries/*/ansible|xargs -I % dirname %|xargs -I % basename %|sort -u)"
         echo DISTROS=$DISTROS
@@ -136,3 +154,22 @@ tasks:
         echo DISTROS=$DISTROS
         eval "while read -r d; do cp -f {{ANSIBLE_DEST}}/\$d/ansible {{ANSIBLE_DEST}}/\$d/{{ITEM}}; done < <(echo -e \"$DISTROS\")"
         echo CMDOK
+
+  - name: Test Binaries
+    tags: [test, always]
+    parallel-tasks:
+    - name: Test %
+      stdout-log: /tmp/ansible-docker-image-test-%-stdout.log
+      stderr-log: /tmp/ansible-docker-image-test-%-stderr.log
+      for-each-list: 
+      - *tested-binaries
+      apply-each-vars: *distro-vars
+      env: *env
+      vars: *vars
+      pre-cmd: |
+        stat binaries/fedora35/%
+        eval binaries/fedora35/% --help
+        eval binaries/fedora35/% --version
+        echo PREOK
+      cmd: |
+        echo % OK
