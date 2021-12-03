@@ -2,16 +2,17 @@ x-reference-data:
   env: &env
     DOCKER_XYZ: abc123
 
-  ansible-aliases: &ansible-aliases
-        - ansible-playbook
-        - ansible-inventory
-        - ansible-vault
-        - ansible-config
-        - ansible-connection
-        - ansible-console
-        - ansible-doc
-        - ansible-galaxy
-        - ansible-pull
+  ansible-playbook-aliases: &ansible-playbook-aliases
+    - ansible
+    - ansible-inventory
+    - ansible-vault
+    - ansible-config
+    - ansible-connection
+    - ansible-console
+    - ansible-doc
+    - ansible-galaxy
+    - ansible-pull
+
   tested-binaries: &tested-binaries
     - ansible
     - ansible-playbook
@@ -152,7 +153,7 @@ tasks:
       stdout-log: /tmp/ansible-docker-image-alias-%-stdout.log
       stderr-log: /tmp/ansible-docker-image-alias-%-stderr.log
       for-each-list: 
-      - *ansible-aliases
+      - *ansible-playbook-aliases
       apply-each-vars: *distro-vars
       env: *env
       vars: *vars
