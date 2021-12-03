@@ -11,6 +11,6 @@ RUN bash -c '[[ -d /compile/dist-static ]] || mkdir -p /compile/dist-static'
 
 COPY linodecli.spec /compile
 WORKDIR /compile
-RUN bash -c 'source /root/.ansible-build-venv/bin/activate && pyinstaller linodecli.spec'
-RUN bash -c 'python3 -m pip install staticx && find /compile/dist -type f | while read -r f; do staticx --strip --loglevel $LOG_LEVEL /compile/dist/$(basename $f) /compile/dist-static/$(basename $f); done'
-RUN bash -c 'find /compile/dist /compile/dist-static -type f > /files.txt'
+#RUN bash -c 'source /root/.ansible-build-venv/bin/activate && pyinstaller linodecli.spec'
+#RUN bash -c 'python3 -m pip install staticx && find /compile/dist -type f | while read -r f; do staticx --strip --loglevel $LOG_LEVEL /compile/dist/$(basename $f) /compile/dist-static/$(basename $f); done'
+#RUN bash -c 'find /compile/dist /compile/dist-static -type f > /files.txt'
