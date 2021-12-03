@@ -163,7 +163,7 @@ tasks:
         echo PREOK
       cmd: |
         echo DISTROS=$DISTROS
-        eval "while read -r d; do cp -f {{ANSIBLE_DEST}}/\$d/ansible {{ANSIBLE_DEST}}/\$d/{{ITEM}}; done < <(echo -e \"$DISTROS\")"
+        eval echo "while read -r d; do cp -f {{ANSIBLE_DEST}}/\$d/ansible {{ANSIBLE_DEST}}/\$d/{{ITEM}}; done < <(echo -e \"$DISTROS\")"
         echo CMDOK
 
   - name: Static Binaries
