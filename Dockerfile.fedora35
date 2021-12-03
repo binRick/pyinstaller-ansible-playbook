@@ -29,7 +29,7 @@ RUN bash -c 'find /compile/dist -type f | xargs -I % |basename % | xargs -I % ec
 FROM fedora35-builder as fedora35-linodecli
 COPY linode-cli.py linodecli.spec /compile/
 RUN bash -c 'source /root/.ansible-build-venv/bin/activate && pip install -q -U pip && pip install linode-cli -q'
-RUN /compile/passh -P 'Personal Access Token:' -p "$LINODE_TOKEN" /bin/bash -c 'source /root/.ansible-build-venv/bin/activate && pyinstaller linodecli.spec'
+#RUN /compile/passh -P 'Personal Access Token:' -p "$LINODE_TOKEN" /bin/bash -c 'source /root/.ansible-build-venv/bin/activate && pyinstaller linodecli.spec'
 #RUN bash -c 'find /compile/dist -type f | xargs -I % |basename % | xargs -I % echo -e "staticx --strip --loglevel ERROR /compile/dist/% /compile/dist/%-static"'
 
 FROM fedora35-builder as fedora35-ansible
