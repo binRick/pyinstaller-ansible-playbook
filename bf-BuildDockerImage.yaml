@@ -157,6 +157,7 @@ tasks:
       env: *env
       vars: *vars
       pre-cmd: |
+        eval "[[ -d ./binaries ]] || mkdir -p ./binaries"
         export DISTROS="$(ls binaries/*/ansible|xargs -I % dirname %|xargs -I % basename %|sort -u)"
         echo DISTROS=$DISTROS
         echo PREOK
