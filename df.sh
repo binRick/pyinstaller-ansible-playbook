@@ -4,6 +4,14 @@ cd $(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 DISTROS="fedora35 alpine315"
 DOCKERFILES="builder ansible linodecli"
 MODE=${1:-build}
+BUILD_ENV=
+
+if [[ -f .envrc ]]; then
+  BUILD_ENV="$(
+    source .envrc
+    while read -r n; do echo -e "--build-arg=${n}=${!n}"; done < <(echo -e "$DOCKERFILE_BUILD_VARS"|tr ' ' '\n')
+  )"
+fi
 
 build() {
 	for DISTRO in $DISTROS; do for DOCKERFILE in $DOCKERFILES; do
@@ -13,7 +21,7 @@ build() {
 		find_cmd="docker run --rm $DISTRO-$DOCKERFILE:latest find /compile/dist /compile/dist-static -type f 2>/dev/null| tee $ff"
 		local_dir="[[ -d '$bd' ]] || mkdir -p '$bd'"
 		local_dir1="[[ -d '$sd' ]] || mkdir -p '$sd'"
-		cmd="docker build -f $DISTRO-$DOCKERFILE.Dockerfile -t $DISTRO-$DOCKERFILE --target $DISTRO-$DOCKERFILE . && eval $find_cmd && $local_dir &&  $local_dir1"
+		cmd="docker build -f $DISTRO-$DOCKERFILE.Dockerfile -t $DISTRO-$DOCKERFILE --target $DISTRO-$DOCKERFILE $(echo -e "$BUILD_ENV"|tr '\n' ' ') . && eval $find_cmd && $local_dir &&  $local_dir1"
 		ansi >&2 --yellow --italic "$cmd"
 		#eval "$cmd"
 	done; done
