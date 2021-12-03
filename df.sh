@@ -42,7 +42,7 @@ img_files() {
       [[ -d "$dn" ]] || mkdir -p "$dn"
       chmod_cmd="chmod 0700 $local_path && chown root:root $local_path"
       cat_cmd="docker run --rm $DISTRO-$DOCKERFILE:latest cat $f | pv > $local_path && $chmod_cmd && md5sum $local_path"
-      cp_cmd="docker run --rm -v \$(pwd)/$dn:$dn $DISTRO-$DOCKERFILE:latest cp $f $dn/."
+      cp_cmd="docker run --rm -v \$(pwd)/$dn:/H $DISTRO-$DOCKERFILE:latest cp $f /H/."
       json="$(cat << EOF
         name=$DISTRO-$DOCKERFILE \
         container_path=$f \
