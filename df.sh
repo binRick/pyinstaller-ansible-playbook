@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 set -eou pipefail
 cd $(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
-DISTROS="fedora35 alpine315"
-DOCKERFILES="builder ansible linodecli"
+DISTROS="${DISTROS:-fedora35 alpine315 fedora34}"
+DOCKERFILES="${DOCKERFILES:-builder ansible linodecli}"
 MODE=${1:-main}
 BUILD_ENV=
 
