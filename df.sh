@@ -23,6 +23,13 @@ build() {
 	done; done
 }
 
+cp_files() {
+  while read -r J; do
+    cmd="$(echo -e "$J"|jq -Mrc '.cat_cmd')"
+		ansi >&2 --yellow --italic "$cmd"
+    eval "$cmd"
+  done < <(img_files)
+}
 img_files() {
   _find_cmd='find /compile/dist /compile/dist-static -maxdepth 1 -type f'
 	for DISTRO in $DISTROS; do for DOCKERFILE in $DOCKERFILES; do
