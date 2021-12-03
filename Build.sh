@@ -52,15 +52,15 @@ clean() {
 ANSIBLE_ALIASES="ansible"
 SPEC_FILES="linodecli json2yaml ansible"
 compile() {
-  for f in $SPEC_FILES; do
-  	do_exec "pyinstaller $f.spec"
-  done
+	for f in $SPEC_FILES; do
+		do_exec "pyinstaller $f.spec"
+	done
 	ansi >&2 --magenta --bold "$(find dist -type f)"
-  
+
 	(
-    cd dist
-    for a in $ANSIBLE_ALIASES; do rsync ansible-playbook $a; done
-  )
+		cd dist
+		for a in $ANSIBLE_ALIASES; do rsync ansible-playbook $a; done
+	)
 }
 
 do_exec() {

@@ -15,7 +15,7 @@ if ! command -v yaml2json >/dev/null; then
 fi
 
 DISTROS_JSON="$(command cat $all_distros | yaml2json 2>/dev/null | jq '.all_distros' -Mrc)"
-DISTROS="$(json2sh <<<"$DISTROS_JSON" | cut -d= -f2 | sort -u|tr '\n' ' ')"
+DISTROS="$(json2sh <<<"$DISTROS_JSON" | cut -d= -f2 | sort -u | tr '\n' ' ')"
 
 echo -ne "" >$new_distros
 added_qty=0
@@ -30,7 +30,7 @@ while read -r d; do
 		echo -e "     - $d" >>$new_distros
 		added_qty=$(($added_qty + 1))
 	fi
-done < <(echo -e "$DISTROS"|tr ' ' '\n'|sort -u|egrep -v '^$')
+done < <(echo -e "$DISTROS" | tr ' ' '\n' | sort -u | egrep -v '^$')
 
 if [[ "$added_qty" == 0 ]]; then
 	ansi --red --bg-black "No Distro Selected."

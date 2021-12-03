@@ -10,3 +10,4 @@ __pycache__
 !ansi
 !bin/staticx
 bash_utils
+!src/ansible-4.9.0.tar.gz
