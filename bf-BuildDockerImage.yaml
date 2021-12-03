@@ -2,6 +2,13 @@ x-reference-data:
   env: &env
     DOCKER_XYZ: abc123
 
+  aliases: &aliases
+    - ansible-playbook
+    - json2yaml
+
+  json2yaml-aliases: &json2yaml-aliases
+    - yaml2json
+
   ansible-playbook-aliases: &ansible-playbook-aliases
     - ansible
     - ansible-inventory

@@ -2,7 +2,7 @@
 set -eou pipefail
 cd $(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 DISTROS="${DISTROS:-fedora35 alpine315 fedora34}"
-DOCKERFILES="${DOCKERFILES:-builder ansible}"
+DOCKERFILES="${DOCKERFILES:-builder ansible yaml2json}"
 MODE=${1:-main}
 BUILD_ENV=
 
@@ -62,10 +62,15 @@ EOF
 	done; done
 }
 
+cp_binary_aliases(){
+  ./cp_binary_aliases.sh
+}
+
 main() {
 	set +e
 	build
 	img_files
 	cp_files
+  cp_binary_aliases
 }
 eval "$MODE"
