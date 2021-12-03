@@ -77,11 +77,22 @@ tasks:
       env: *env
       vars: *vars
       cmd: eval "[[ -f src/ansible-{{ANSIBLE_VERSION}}.tar.gz ]] || wget https://files.pythonhosted.org/packages/6c/6a/d2729c854d5487f4c8e18a72eadf53287a2aa16d7924df39751025592ab9/ansible-{{ANSIBLE_VERSION}}.tar.gz -O src/ansible-{{ANSIBLE_VERSION}}.tar.gz"
+  - name: Build Base Builder Image
+    tags: [builder]
+    parallel-tasks:
+    - name: Build
+      pre-cmd: docker build -f Dockerfile.fedora35 --target fedora35-builder -t fedora35-builder .
+      env: *env
+      vars: *vars
+      cmd: docker run --rm fedora35-builder rpm -qa | wc -l
 
+#            echo -e "echo staticx --strip --loglevel ERROR /compile/dist/% /compile/dist/%-static"
   - name: Build Per-Distro Spec Files
-    tags: [collect, specs]
+    tags: [build]
     parallel-tasks:
     - name: Build Distro %
+      stdout-log: /tmp/ansible-docker-build-%-stdout.log
+      stderr-log: /tmp/ansible-docker-build-%-stderr.log
       for-each-list: *distros
       apply-each-vars: *distro-vars
       env: *env
@@ -90,7 +101,7 @@ tasks:
         export SPEC_NAMES="$(ls *.spec|xargs -I % basename % .spec|sort -u)"
         BUILD_SPEC_CMDS="$(while read -r spec; do
             >&2 echo -e "Building % $spec.."
-            echo -e "passh command docker build -v $HOME/.config/linode-cli:/root/.config/linode-cli:ro -v \$(pwd)/src/ansible-4.9.0:/ansible-4.9.0:rw -v \$(command -v passh):/usr/bin/passh:ro -v \$(pwd)/src/staticx-0.13.5:/staticx-0.13.5:rw --build-arg=LINODE_TOKEN={{LINODE_TOKEN}} --build-arg=ANSIBLE_VERSION={{ANSIBLE_VERSION}} --target=%-$spec --tag=%-$spec --file={{DOCKER_FILE}} --label=$spec --pull=false {{DOCKER_PATH}} || exit 1"
+            echo -e "command docker build --build-arg=LINODE_TOKEN={{LINODE_TOKEN}} --build-arg=ANSIBLE_VERSION={{ANSIBLE_VERSION}} --target=%-$spec --tag=%-$spec --file={{DOCKER_FILE}} --label=$spec --pull=false {{DOCKER_PATH}}"
         done < <(echo -e "$SPEC_NAMES"))"
         export BUILD_SPEC_CMDS="$BUILD_SPEC_CMDS"
       post-cmd: |
@@ -99,16 +110,15 @@ tasks:
         eval "$BUILD_SPEC_CMDS"
 
   - name: Copy Docker Image Binaries
-    tags: [build]
+    tags: [copy]
     parallel-tasks:
-    - name: Build Docker Image %
-      stdout-log: /tmp/ansible-docker-image-%-stdout.log
-      stderr-log: /tmp/ansible-docker-image-%-stderr.log
+    - name: Copy %
+      stdout-log: /tmp/ansible-docker-copy-%-stdout.log
+      stderr-log: /tmp/ansible-docker-copy-%-stderr.log
       for-each-list: *distros
       apply-each-vars: *distro-vars
       env: *env
       vars: *vars
-
 #        eval "[[ -f \"{{ANSIBLE_DEST}}/%/ansible-playbook\" ]] && [[ -f \"{{ANSIBLE_DEST}}/%/ansible\" ]] && exit 0"
       pre-cmd: |
         [[ -d "{{ANSIBLE_DEST}}/%" ]] || mkdir -p "{{ANSIBLE_DEST}}/%"
@@ -128,9 +138,9 @@ tasks:
         eval "command docker cp \$cid_yaml2json:/compile/dist/yaml2json {{ANSIBLE_DEST}}/%/. || exit 1"
       post-cmd: |
         eval "{{ANSIBLE_DEST}}/%/ansible --version"
-        echo eval "{{ANSIBLE_DEST}}/%/linode-cli --version"
-        echo eval "ls {{ANSIBLE_DEST}}/%/linode-cli && echo linode-cli OK"
         eval "ls {{ANSIBLE_DEST}}/%/ansible && echo ansible OK"
+#        echo eval "{{ANSIBLE_DEST}}/%/linode-cli --version"
+#        echo eval "ls {{ANSIBLE_DEST}}/%/linode-cli && echo linode-cli OK"
       when:
         - "{{ITEM}} == {{ITEM}}"
 #        - "{{ITEM}} == {{SPECIFIED_DISTRO}}"
@@ -155,8 +165,43 @@ tasks:
         eval "while read -r d; do cp -f {{ANSIBLE_DEST}}/\$d/ansible {{ANSIBLE_DEST}}/\$d/{{ITEM}}; done < <(echo -e \"$DISTROS\")"
         echo CMDOK
 
+  - name: Static Binaries
+    tags: [static]
+    parallel-tasks:
+    - name: Create Static Binaries 
+      stdout-log: /tmp/ansible-docker-image-static-stderr.log
+      stderr-log: /tmp/ansible-docker-image-static-stderr.log
+      env:
+        IF: /tmp/if.txt
+        DIST_FILES: /tmp/df.txt
+      pre-cmd: |
+        ./scripts/imgs.sh > $IF
+        echo -n "" > $DIST_FILES
+        while read -r img; do
+          docker run --rm $img find /compile/dist -type f | while read -r f; do echo -e "$img $f"; done
+        done < <(cat $IF) | tee $DIST_FILES
+      cmd: |
+        while read -r img img_file; do
+          echo -e "docker run -v ./.tmp:/TMP:rw --rm $img env staticx --strip --loglevel ERROR $img_file /TMP/\$(basename ${img_file})-static"
+        done < <(cat $DIST_FILES)
+        #echo staticx --strip --loglevel ERROR binaries/fedora35/% binaries/fedora35/%-static
+      post-cmd: |
+        echo OK
+
+        #docker run --rm localhost/fedora35-linodecli find /compile/dist -type f
+        #echo PREOK
+        #eval "cid=$(command docker create %-{{DOCKER_LABEL}}) || exit 1"
+        #eval "cid_linodecli=$(command docker create %-linodecli) || exit 1"
+        #eval "cid_json2yaml=$(command docker create %-json2yaml) || exit 1"
+        #eval "cid_yaml2json=$(command docker create %-yaml2json) || exit 1"
+        #date
+        #echo staticx --strip --loglevel ERROR binaries/fedora35/% binaries/fedora35/%-static
+        #ldd binaries/fedora35/%*
+        #eval binaries/fedora35/%-static --help
+        #eval binaries/fedora35/%-static --version
+        #
   - name: Test Binaries
-    tags: [test, always]
+    tags: [test]
     parallel-tasks:
     - name: Test %
       stdout-log: /tmp/ansible-docker-image-test-%-stdout.log
@@ -167,9 +212,11 @@ tasks:
       env: *env
       vars: *vars
       pre-cmd: |
+        exit 0
         stat binaries/fedora35/%
         eval binaries/fedora35/% --help
         eval binaries/fedora35/% --version
+        ldd binaries/fedora35/%
         echo PREOK
       cmd: |
         echo % OK

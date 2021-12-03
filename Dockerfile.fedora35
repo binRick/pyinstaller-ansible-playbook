@@ -3,10 +3,9 @@ ARG LINODE_TOKEN=$LINODE_TOKEN
 ARG ANSIBLE_VERSION=$ANSIBLE_VERSION
 ENV ANSIBLE_VERSION=4.9.0
 RUN echo ANSIBLE_VERSION=$ANSIBLE_VERSION LINODE_TOKEN=$LINODE_TOKEN
-RUN dnf -y install binutils python3 python3-setuptools rsync findutils python3-wheel pv
+RUN dnf -y install binutils python3 python3-setuptools rsync findutils python3-wheel pv python3-pip python3-devel
 RUN python3 -m venv /root/.ansible-build-venv
-RUN bash -c 'source /root/.ansible-build-venv/bin/activate && pip install -q -U pip && pip install six pyinstaller -q'
-
+RUN bash -c 'source /root/.ansible-build-venv/bin/activate && pip install -q -U pip && pip install six pyinstaller staticx -q'
 
 WORKDIR /compile
 COPY bin/passh ansi bin/staticx /compile/
@@ -17,28 +16,28 @@ WORKDIR /compile
 
 FROM fedora35-builder as fedora35-yaml2json
 COPY yaml2json.py yaml2json.spec /compile/
-RUN bash -c 'source /root/.ansible-build-venv/bin/activate && pip install -q -U pip && pip install six json2yaml -q'
+RUN bash -c 'source /root/.ansible-build-venv/bin/activate && pip install -q -U pip && pip install json2yaml -q'
 RUN bash -c 'source /root/.ansible-build-venv/bin/activate && pyinstaller yaml2json.spec'
+RUN bash -c 'find /compile/dist -type f | xargs -I % |basename % | xargs -I % echo -e "staticx --strip --loglevel ERROR /compile/dist/% /compile/dist/%-static"'
 
 FROM fedora35-builder as fedora35-json2yaml
 COPY json2yaml.py json2yaml.spec /compile/
-RUN bash -c 'source /root/.ansible-build-venv/bin/activate && pip install -q -U pip && pip install six json2yaml -q'
+RUN bash -c 'source /root/.ansible-build-venv/bin/activate && pip install -q -U pip && pip install json2yaml -q'
 RUN bash -c 'source /root/.ansible-build-venv/bin/activate && pyinstaller json2yaml.spec'
+RUN bash -c 'find /compile/dist -type f | xargs -I % |basename % | xargs -I % echo -e "staticx --strip --loglevel ERROR /compile/dist/% /compile/dist/%-static"'
 
 FROM fedora35-builder as fedora35-linodecli
 COPY linode-cli.py linodecli.spec /compile/
-RUN bash -c 'source /root/.ansible-build-venv/bin/activate && pip install -q -U pip && pip install six linode-cli -q'
+RUN bash -c 'source /root/.ansible-build-venv/bin/activate && pip install -q -U pip && pip install linode-cli -q'
 RUN /compile/passh -P 'Personal Access Token:' -p "$LINODE_TOKEN" /bin/bash -c 'source /root/.ansible-build-venv/bin/activate && pyinstaller linodecli.spec'
-
+#RUN bash -c 'find /compile/dist -type f | xargs -I % |basename % | xargs -I % echo -e "staticx --strip --loglevel ERROR /compile/dist/% /compile/dist/%-static"'
 
 FROM fedora35-builder as fedora35-ansible
 COPY ansible-playbook.py ansible.spec /compile/
 RUN bash -c 'source /root/.ansible-build-venv/bin/activate && pip install -q -U pip && pip install six watchdog /ansible-$ANSIBLE_VERSION -q'
 COPY ansible-playbook.py /compile/
 RUN bash -c 'source /root/.ansible-build-venv/bin/activate && pyinstaller ansible.spec'
-
-
-
+RUN bash -c 'find /compile/dist -type f | xargs -I % |basename % | xargs -I % echo -e "staticx --strip --loglevel ERROR /compile/dist/% /compile/dist/%-static"'
 
 
 

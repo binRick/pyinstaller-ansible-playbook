@@ -1,1 +1,12 @@
-!.v/
+.v/
+binaries/
+.git/
+src/
+ansible-*.tar.gz
+dist
+build
+__pycache__
+!bin/passh
+!ansi
+!bin/staticx
+bash_utils
