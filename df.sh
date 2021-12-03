@@ -5,6 +5,7 @@ DISTROS="${DISTROS:-fedora35 alpine315 fedora34}"
 DOCKERFILES="${DOCKERFILES:-builder ansible yaml2json}"
 MODE=${1:-main}
 BUILD_ENV=
+command -v json2yaml || pip3 install json2yaml
 
 if [[ -f .envrc ]]; then
 	BUILD_ENV="$(
