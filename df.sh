@@ -25,11 +25,12 @@ build() {
 
 cp_files() {
   while read -r J; do
-    cmd="$(echo -e "$J"|jq -Mrc '.cat_cmd')"
+    cmd="$(echo -e "$J"|jq -Mrc '.cp_cmd')"
 		ansi >&2 --yellow --italic "$cmd"
     eval "$cmd"
   done < <(img_files)
 }
+
 img_files() {
   _find_cmd='find /compile/dist /compile/dist-static -maxdepth 1 -type f'
 	for DISTRO in $DISTROS; do for DOCKERFILE in $DOCKERFILES; do
@@ -41,7 +42,7 @@ img_files() {
       [[ -d "$dn" ]] || mkdir -p "$dn"
       chmod_cmd="chmod 0700 $local_path && chown root:root $local_path"
       cat_cmd="docker run --rm $DISTRO-$DOCKERFILE:latest cat $f | pv > $local_path && $chmod_cmd && md5sum $local_path"
-      cp_cmd="docker cp \$CID:$f $local_path"
+      cp_cmd="docker run --rm -v \$(pwd)/$dn:$dn $DISTRO-$DOCKERFILE:latest cp $f $dn/."
       json="$(cat << EOF
         name=$DISTRO-$DOCKERFILE \
         container_path=$f \
@@ -65,5 +66,6 @@ main(){
   set +e
   build
   img_files
+  cp_files
 }
 eval "$MODE"
