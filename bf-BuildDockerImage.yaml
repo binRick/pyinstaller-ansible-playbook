@@ -5,6 +5,7 @@ x-reference-data:
 #    - ansible-playbook
   aliases: &aliases
     - json2yaml
+    - ansible-playbook
 
   json2yaml-aliases: &json2yaml-aliases
     - yaml2json
